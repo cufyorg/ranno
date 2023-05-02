@@ -16,12 +16,14 @@
 package org.cufy.ranno.internal
 
 import java.lang.ClassLoader.getSystemResources
+import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Array
 import java.lang.reflect.Field
+import java.lang.reflect.InaccessibleObjectException
+import java.lang.reflect.Member
 import java.lang.reflect.Method
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.jvmErasure
 
 /**
@@ -31,7 +33,7 @@ import kotlin.reflect.jvm.jvmErasure
  * A workaround for toplevel reflection
  */
 internal val KClass<*>.jvmMethods: Sequence<Method>
-    get() = java.nestMembers.single().let {
+    get() = java.let {
         sequenceOf(it.methods, it.declaredMethods)
             .flatMap { it.asSequence() }.distinct()
     }
@@ -43,7 +45,7 @@ internal val KClass<*>.jvmMethods: Sequence<Method>
  * A workaround for toplevel reflection
  */
 internal val KClass<*>.jvmFields: Sequence<Field>
-    get() = java.nestMembers.single().let {
+    get() = java.let {
         sequenceOf(it.fields, it.declaredFields)
             .flatMap { it.asSequence() }.distinct()
     }
@@ -145,4 +147,19 @@ internal fun KCallable<*>.canApply(vararg arguments: Any?): Boolean {
     }
 
     return true
+}
+
+fun AccessibleObject.trySetAccessibleAlternative(): Boolean {
+    @Suppress("DEPRECATION")
+    if (isAccessible)
+        return true
+
+    try {
+        isAccessible = true
+        return true
+    } catch (_: SecurityException) {
+    } catch (_: InaccessibleObjectException) {
+    }
+
+    return false
 }

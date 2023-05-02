@@ -100,10 +100,9 @@ internal fun lookupToplevelPropertyNoBackingField(klass: KClass<*>, name: String
 
     // the delegate of the field is assigned to a field with a special name
     val delegate = lazy {
-        fields.firstOrNull {
-            it.name == delegateName &&
-                    isStatic(it.modifiers)
-        }?.takeIf { it.trySetAccessible() }?.get(null)
+        fields.firstOrNull { it.name == delegateName && isStatic(it.modifiers) }
+            ?.takeIf { it.trySetAccessibleAlternative() }
+            ?.get(null)
     }
 
     return when (parameters.size) {
