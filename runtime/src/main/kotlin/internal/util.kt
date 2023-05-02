@@ -19,8 +19,6 @@ import java.lang.ClassLoader.getSystemResources
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Array
 import java.lang.reflect.Field
-import java.lang.reflect.InaccessibleObjectException
-import java.lang.reflect.Member
 import java.lang.reflect.Method
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -158,7 +156,10 @@ fun AccessibleObject.trySetAccessibleAlternative(): Boolean {
         isAccessible = true
         return true
     } catch (_: SecurityException) {
-    } catch (_: InaccessibleObjectException) {
+    } catch (e: Throwable) {
+        if (e.javaClass.name !=
+            "java.lang.reflect.InaccessibleObjectException"
+        ) throw e
     }
 
     return false
