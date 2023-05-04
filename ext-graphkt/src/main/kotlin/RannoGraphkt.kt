@@ -17,11 +17,10 @@ package org.cufy.ranno.graphkt
 
 import org.cufy.graphkt.schema.GraphQLRoute
 import org.cufy.graphkt.schema.GraphQLSchemaBuilder
-import org.cufy.ranno.Enumerable
-import org.cufy.ranno.EnumerableParameters
-import org.cufy.ranno.EnumerableReturnType
-import org.cufy.ranno.applyWith
+import org.cufy.ranno.*
+import org.intellij.lang.annotations.Language
 import kotlin.reflect.KCallable
+import kotlin.reflect.full.findAnnotations
 
 /**
  * The default graphql route enumeration annotation.
@@ -42,7 +41,7 @@ annotation class EnumeratedGraphQLRoute(
      *
      * @since 1.0.0
      */
-    val value: String,
+    val name: String = "",
     /**
      * Used to reduce conflict between multiple modules.
      *
@@ -65,9 +64,7 @@ annotation class EnumeratedGraphQLRoute(
  * @param arguments additional arguments.
  * @since 1.0.0
  */
-fun GraphQLRoute<*>.applyEnumeratedGraphQLRoute(
-    vararg arguments: Any?
-): List<Any?> {
+fun GraphQLRoute<*>.applyEnumeratedGraphQLRoute(vararg arguments: Any?): List<Any?> {
     return applyWith<EnumeratedGraphQLRoute>(*arguments)
 }
 
@@ -86,11 +83,36 @@ fun GraphQLRoute<*>.applyEnumeratedGraphQLRoute(
  * @param arguments additional arguments.
  * @since 1.0.0
  */
-fun GraphQLRoute<*>.applyEnumeratedGraphQLRoute(
-    vararg arguments: Any?,
-    predicate: (KCallable<*>) -> Boolean
-): List<Any?> {
+fun GraphQLRoute<*>.applyEnumeratedGraphQLRoute(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
     return applyWith<EnumeratedGraphQLRoute>(*arguments, predicate = predicate)
+}
+
+/**
+ * Call all the functions and properties annotated with [EnumeratedGraphQLRoute]
+ * and matches the given [name] regexp and [domain] regexp
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+fun Any.applyEnumeratedGraphQLRoute(
+    vararg arguments: Any?,
+    @Language("RegExp") name: String = ".*",
+    @Language("RegExp") domain: String = ".*"
+): List<Any?> {
+    val n = name.toRegex()
+    val d = domain.toRegex()
+    return applyWith<EnumeratedGraphQLRoute>(*arguments) {
+        it.findAnnotations<EnumeratedGraphQLRoute>()
+            .any { it.name matches n && it.domain matches d }
+    }
 }
 
 /**
@@ -112,7 +134,7 @@ annotation class EnumeratedGraphQLSchema(
      *
      * @since 1.0.0
      */
-    val value: String,
+    val name: String = "",
     /**
      * Used to reduce conflict between multiple modules.
      *
@@ -135,9 +157,7 @@ annotation class EnumeratedGraphQLSchema(
  * @param arguments additional arguments.
  * @since 1.0.0
  */
-fun GraphQLSchemaBuilder.applyEnumeratedGraphQLSchema(
-    vararg arguments: Any?
-): List<Any?> {
+fun GraphQLSchemaBuilder.applyEnumeratedGraphQLSchema(vararg arguments: Any?): List<Any?> {
     return applyWith<EnumeratedGraphQLRoute>(*arguments)
 }
 
@@ -156,9 +176,34 @@ fun GraphQLSchemaBuilder.applyEnumeratedGraphQLSchema(
  * @param arguments additional arguments.
  * @since 1.0.0
  */
-fun GraphQLSchemaBuilder.applyEnumeratedGraphQLSchema(
-    vararg arguments: Any?,
-    predicate: (KCallable<*>) -> Boolean
-): List<Any?> {
+fun GraphQLSchemaBuilder.applyEnumeratedGraphQLSchema(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
     return applyWith<EnumeratedGraphQLRoute>(*arguments, predicate = predicate)
+}
+
+/**
+ * Call all the functions and properties annotated with [EnumeratedGraphQLSchema]
+ * and matches the given [name] regexp and [domain] regexp
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+fun Any.applyEnumeratedGraphQLSchema(
+    vararg arguments: Any?,
+    @Language("RegExp") name: String = ".*",
+    @Language("RegExp") domain: String = ".*"
+): List<Any?> {
+    val n = name.toRegex()
+    val d = domain.toRegex()
+    return applyWith<EnumeratedGraphQLSchema>(*arguments) {
+        it.findAnnotations<EnumeratedGraphQLSchema>()
+            .any { it.name matches n && it.domain matches d }
+    }
 }
