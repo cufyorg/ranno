@@ -17,6 +17,7 @@ package org.cufy.ranno
 
 import org.cufy.ranno.internal.canApply
 import org.cufy.ranno.internal.enumerateElementsWith
+import org.intellij.lang.annotations.Language
 import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotations
 
@@ -505,11 +506,36 @@ fun runEnumerated(vararg arguments: Any?): List<Any?> {
  * @param arguments the arguments.
  * @since 1.0.0
  */
+fun runEnumerated(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
+    return runWith<Enumerated>(*arguments, predicate = predicate)
+}
+
+/**
+ * Call all the functions and properties annotated with [Enumerated]
+ * and matches the given [name] regexp and [domain] regexp
+ * with the given [arguments].
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
 fun runEnumerated(
     vararg arguments: Any?,
-    predicate: (KCallable<*>) -> Boolean
-): List<Any?> {
-    return runWith<Enumerated>(*arguments, predicate = predicate)
+    @Language("RegExp") name: String = ".*",
+    @Language("RegExp") domain: String = ".*"
+) {
+    val n = name.toRegex()
+    val d = domain.toRegex()
+    runEnumerated(*arguments) {
+        it.findAnnotations<Enumerated>()
+            .any { it.name matches n && it.domain matches d }
+    }
 }
 
 /**
@@ -545,11 +571,36 @@ fun Any.applyEnumerated(vararg arguments: Any?): List<Any?> {
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+fun Any.applyEnumerated(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
+    return applyWith<Enumerated>(*arguments, predicate = predicate)
+}
+
+/**
+ * Call all the functions and properties annotated with [Enumerated]
+ * and matches the given [name] regexp and [domain] regexp
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
 fun Any.applyEnumerated(
     vararg arguments: Any?,
-    predicate: (KCallable<*>) -> Boolean
+    @Language("RegExp") name: String = ".*",
+    @Language("RegExp") domain: String = ".*"
 ): List<Any?> {
-    return applyWith<Enumerated>(*arguments, predicate = predicate)
+    val n = name.toRegex()
+    val d = domain.toRegex()
+    return applyWith<Enumerated>(*arguments) {
+        it.findAnnotations<Enumerated>()
+            .any { it.name matches n && it.domain matches d }
+    }
 }
 
 //////////////////////////////////////////////////
