@@ -95,7 +95,7 @@ fun commandsWith(annotation: Annotation): List<CliktCommand> {
 fun runCommandWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .single { predicate(it) }
-        .parse(arguments.asList())
+        .main(arguments.asList())
 }
 
 /**
@@ -114,7 +114,7 @@ fun runCommandWith(annotation: String, vararg arguments: String, predicate: (Cli
 fun runCommandWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .single { predicate(it) }
-        .parse(arguments.asList())
+        .main(arguments.asList())
 }
 
 /**
@@ -149,7 +149,7 @@ inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, cro
 fun runCommandWith(annotation: Annotation, vararg arguments: String) {
     commandsWith(annotation)
         .single()
-        .parse(arguments.asList())
+        .main(arguments.asList())
 }
 
 //////////////////////////////////////////////////
@@ -169,7 +169,7 @@ fun runCommandWith(annotation: Annotation, vararg arguments: String) {
 fun runCommandsWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .filter { predicate(it) }
-        .forEach { it.parse(arguments.asList()) }
+        .forEach { it.main(arguments.asList()) }
 }
 
 /**
@@ -187,7 +187,7 @@ fun runCommandsWith(annotation: String, vararg arguments: String, predicate: (Cl
 fun runCommandsWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .filter { predicate(it) }
-        .forEach { it.parse(arguments.asList()) }
+        .forEach { it.main(arguments.asList()) }
 }
 
 /**
@@ -219,7 +219,7 @@ inline fun <reified T : Annotation> runCommandsWith(vararg arguments: String, cr
  */
 fun runCommandsWith(annotation: Annotation, vararg arguments: String) {
     commandsWith(annotation)
-        .forEach { it.parse(arguments.asList()) }
+        .forEach { it.main(arguments.asList()) }
 }
 
 //////////////////////////////////////////////////
