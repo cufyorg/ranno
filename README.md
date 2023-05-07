@@ -1,4 +1,4 @@
-### Ranno - Runtime Annotation Processing
+### Ranno - Runtime Annotation Processing [![](https://jitpack.io/v/org.cufy/ranno.svg)](https://jitpack.io/#org.cufy/ranno)
 
 A KSP to shift annotation processing to runtime.
 
