@@ -16,8 +16,9 @@
 package org.cufy.ranno.clikt
 
 import com.github.ajalt.clikt.core.CliktCommand
-import org.cufy.ranno.*
-import org.intellij.lang.annotations.Language
+import org.cufy.ranno.Enumerable
+import org.cufy.ranno.EnumerableSuperType
+import org.cufy.ranno.classesWith
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotations
@@ -25,7 +26,7 @@ import kotlin.reflect.full.findAnnotations
 //////////////////////////////////////////////////
 
 /**
- * Return all the commands annotated with [T].
+ * Return all the commands annotated with [annotation] qualified name.
  *
  * ___Note: Only the elements passed to ranno
  * annotation processor will be returned by this
@@ -33,17 +34,12 @@ import kotlin.reflect.full.findAnnotations
  *
  * @since 1.0.0
  */
-fun <T : Annotation> commandsWith(annotation: KClass<T>): List<CliktCommand> {
-    return classesWith(annotation)
-        .asSequence()
-        .map { it.objectInstance ?: it.createInstance() }
-        .filterIsInstance<CliktCommand>()
-        .toList()
+fun commandsWith(annotation: String, predicate: (KClass<*>) -> Boolean = { true }): List<CliktCommand> {
+    return classesWith(annotation).mapMaybeCommand(predicate)
 }
 
 /**
- * Return all the commands annotated with [T]
- * and one of the annotations matches the given [predicate].
+ * Return all the commands annotated with [annotation].
  *
  * ___Note: Only the elements passed to ranno
  * annotation processor will be returned by this
@@ -51,12 +47,8 @@ fun <T : Annotation> commandsWith(annotation: KClass<T>): List<CliktCommand> {
  *
  * @since 1.0.0
  */
-fun <T : Annotation> commandsWith(annotation: KClass<T>, predicate: (KClass<*>) -> Boolean): List<CliktCommand> {
-    return classesWith(annotation).filter(predicate)
-        .asSequence()
-        .map { it.objectInstance ?: it.createInstance() }
-        .filterIsInstance<CliktCommand>()
-        .toList()
+fun commandsWith(annotation: KClass<out Annotation>, predicate: (KClass<*>) -> Boolean = { true }): List<CliktCommand> {
+    return classesWith(annotation).mapMaybeCommand(predicate)
 }
 
 /**
@@ -68,13 +60,12 @@ fun <T : Annotation> commandsWith(annotation: KClass<T>, predicate: (KClass<*>) 
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> commandsWith(): List<CliktCommand> {
-    return commandsWith(T::class)
+inline fun <reified T : Annotation> commandsWith(noinline predicate: (T) -> Boolean = { true }): List<CliktCommand> {
+    return commandsWith(T::class) { it.findAnnotations<T>().any(predicate) }
 }
 
 /**
- * Return all the commands annotated with [T]
- * and one of the annotations matches the given [predicate].
+ * Return all the commands annotated with [annotation].
  *
  * ___Note: Only the elements passed to ranno
  * annotation processor will be returned by this
@@ -82,30 +73,14 @@ inline fun <reified T : Annotation> commandsWith(): List<CliktCommand> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> commandsWith(noinline predicate: (KClass<*>) -> Boolean): List<CliktCommand> {
-    return commandsWith(T::class, predicate)
+fun commandsWith(annotation: Annotation): List<CliktCommand> {
+    return classesWith(annotation).mapMaybeCommand()
 }
 
 //////////////////////////////////////////////////
 
 /**
- * Run the commands annotated with [T] (see [CliktCommand.main])
- * with the given [arguments].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-fun <T : Annotation> runCommandWith(annotation: KClass<T>, vararg arguments: String) {
-    commandsWith(annotation)
-        .forEach { it.parse(arguments.asList()) }
-}
-
-/**
- * Run the commands annotated with [T] (see [CliktCommand.main])
+ * Run the commands annotated with [annotation] (see [CliktCommand.main])
  * and matches the given [predicate]
  * with the given [arguments].
  *
@@ -116,7 +91,25 @@ fun <T : Annotation> runCommandWith(annotation: KClass<T>, vararg arguments: Str
  * @param arguments the arguments.
  * @since 1.0.0
  */
-fun <T : Annotation> runCommandWith(annotation: KClass<T>, vararg arguments: String, predicate: (CliktCommand) -> Boolean) {
+fun runCommandWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean) {
+    commandsWith(annotation)
+        .filter { predicate(it) }
+        .forEach { it.parse(arguments.asList()) }
+}
+
+/**
+ * Run the commands annotated with [annotation] (see [CliktCommand.main])
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
+fun runCommandWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean) {
     commandsWith(annotation)
         .filter { predicate(it) }
         .forEach { it.parse(arguments.asList()) }
@@ -124,21 +117,6 @@ fun <T : Annotation> runCommandWith(annotation: KClass<T>, vararg arguments: Str
 
 /**
  * Run the commands annotated with [T] (see [CliktCommand.main])
- * with the given [arguments].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> runCommandWith(vararg arguments: String) {
-    runCommandWith(T::class, *arguments)
-}
-
-/**
- * Run the commands annotated with [T] (see [CliktCommand.main])
  * and matches the given [predicate]
  * with the given [arguments].
  *
@@ -149,8 +127,24 @@ inline fun <reified T : Annotation> runCommandWith(vararg arguments: String) {
  * @param arguments the arguments.
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, noinline predicate: (CliktCommand) -> Boolean) {
-    runCommandWith(T::class, *arguments, predicate = predicate)
+inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, crossinline predicate: (T) -> Boolean) {
+    runCommandWith(T::class, *arguments) { it::class.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Run the commands annotated with [annotation] (see [CliktCommand.main])
+ * with the given [arguments].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
+fun runCommandWith(annotation: Annotation, vararg arguments: String) {
+    commandsWith(annotation)
+        .forEach { it.parse(arguments.asList()) }
 }
 
 //////////////////////////////////////////////////
@@ -184,106 +178,14 @@ annotation class EnumeratedCommand(
 
 //////////////////////////////////////////////////
 
-/**
- * Return all the commands annotated with [EnumeratedCommand].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun enumeratedCommands(): List<CliktCommand> {
-    return commandsWith<EnumeratedCommand>()
-}
-
-/**
- * Return all the commands annotated with [EnumeratedCommand]
- * and one of the annotations matches the given [predicate].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun enumeratedCommands(predicate: (CliktCommand) -> Boolean): List<CliktCommand> {
-    return commandsWith<EnumeratedCommand>().filter(predicate)
-}
-
-/**
- * Return all the commands annotated with [EnumeratedCommand]
- * and matches the given [name] regexp and [domain] regexp.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun enumeratedCommands(
-    @Language("RegExp") name: String = ".*",
-    @Language("RegExp") domain: String = ".*"
+private inline fun Iterable<KClass<*>>.mapMaybeCommand(
+    crossinline predicate: (KClass<*>) -> Boolean = { true }
 ): List<CliktCommand> {
-    val n = name.toRegex()
-    val d = domain.toRegex()
-    return commandsWith<EnumeratedCommand> {
-        it.findAnnotations<EnumeratedCommand>()
-            .any { it.name matches n && it.domain matches d }
-    }
-}
-
-//////////////////////////////////////////////////
-
-/**
- * Run the commands annotated with [EnumeratedCommand] (see [CliktCommand.main])
- * with the given [arguments].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-fun runEnumeratedCommands(vararg arguments: String) {
-    enumeratedCommands().forEach { it.parse(arguments.asList()) }
-}
-
-/**
- * Run the commands annotated with [EnumeratedCommand] (see [CliktCommand.main])
- * and matches the given [predicate]
- * with the given [arguments].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-fun runEnumeratedCommands(vararg arguments: String, predicate: (CliktCommand) -> Boolean) {
-    enumeratedCommands(predicate).forEach { it.parse(arguments.asList()) }
-}
-
-/**
- * Run the commands annotated with [EnumeratedCommand] (see [CliktCommand.main])
- * and matches the given [name] regexp and [domain] regexp
- * with the given [arguments].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-fun runEnumeratedCommands(
-    vararg arguments: String,
-    @Language("RegExp") name: String = ".*",
-    @Language("RegExp") domain: String = ".*"
-) {
-    enumeratedCommands(name, domain).forEach { it.main(arguments) }
+    return asSequence()
+        .filter { predicate(it) }
+        .map { it.objectInstance ?: it.createInstance() }
+        .filterIsInstance<CliktCommand>()
+        .toList()
 }
 
 //////////////////////////////////////////////////

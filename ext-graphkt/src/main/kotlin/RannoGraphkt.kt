@@ -17,10 +17,9 @@ package org.cufy.ranno.graphkt
 
 import org.cufy.graphkt.schema.GraphQLRoute
 import org.cufy.graphkt.schema.GraphQLSchemaBuilder
-import org.cufy.ranno.*
-import org.intellij.lang.annotations.Language
-import kotlin.reflect.KCallable
-import kotlin.reflect.full.findAnnotations
+import org.cufy.ranno.Enumerable
+import org.cufy.ranno.EnumerableParameters
+import org.cufy.ranno.EnumerableReturnType
 
 /**
  * The default graphql route enumeration annotation.
@@ -51,71 +50,6 @@ annotation class EnumeratedGraphQLRoute(
 )
 
 /**
- * Call all the functions and properties annotated with [EnumeratedGraphQLRoute]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun GraphQLRoute<*>.applyEnumeratedGraphQLRoute(vararg arguments: Any?): List<Any?> {
-    return applyWith<EnumeratedGraphQLRoute>(*arguments)
-}
-
-/**
- * Call all the functions and properties annotated with [EnumeratedGraphQLRoute]
- * and matches the given [predicate]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun GraphQLRoute<*>.applyEnumeratedGraphQLRoute(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
-    return applyWith<EnumeratedGraphQLRoute>(*arguments, predicate = predicate)
-}
-
-/**
- * Call all the functions and properties annotated with [EnumeratedGraphQLRoute]
- * and matches the given [name] regexp and [domain] regexp
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun Any.applyEnumeratedGraphQLRoute(
-    vararg arguments: Any?,
-    @Language("RegExp") name: String = ".*",
-    @Language("RegExp") domain: String = ".*"
-): List<Any?> {
-    val n = name.toRegex()
-    val d = domain.toRegex()
-    return applyWith<EnumeratedGraphQLRoute>(*arguments) {
-        it.findAnnotations<EnumeratedGraphQLRoute>()
-            .any { it.name matches n && it.domain matches d }
-    }
-}
-
-/**
  * The default graphql schema enumeration annotation.
  *
  * For structures without custom annotations.
@@ -142,68 +76,3 @@ annotation class EnumeratedGraphQLSchema(
      */
     val domain: String = ""
 )
-
-/**
- * Call all the functions and properties annotated with [EnumeratedGraphQLSchema]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun GraphQLSchemaBuilder.applyEnumeratedGraphQLSchema(vararg arguments: Any?): List<Any?> {
-    return applyWith<EnumeratedGraphQLRoute>(*arguments)
-}
-
-/**
- * Call all the functions and properties annotated with [EnumeratedGraphQLSchema]
- * and matches the given [predicate]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun GraphQLSchemaBuilder.applyEnumeratedGraphQLSchema(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
-    return applyWith<EnumeratedGraphQLRoute>(*arguments, predicate = predicate)
-}
-
-/**
- * Call all the functions and properties annotated with [EnumeratedGraphQLSchema]
- * and matches the given [name] regexp and [domain] regexp
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun Any.applyEnumeratedGraphQLSchema(
-    vararg arguments: Any?,
-    @Language("RegExp") name: String = ".*",
-    @Language("RegExp") domain: String = ".*"
-): List<Any?> {
-    val n = name.toRegex()
-    val d = domain.toRegex()
-    return applyWith<EnumeratedGraphQLSchema>(*arguments) {
-        it.findAnnotations<EnumeratedGraphQLSchema>()
-            .any { it.name matches n && it.domain matches d }
-    }
-}

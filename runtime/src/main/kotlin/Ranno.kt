@@ -17,7 +17,6 @@ package org.cufy.ranno
 
 import org.cufy.ranno.internal.canApply
 import org.cufy.ranno.internal.enumerateElementsWith
-import org.intellij.lang.annotations.Language
 import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotations
 
@@ -174,7 +173,7 @@ fun elementsWith(annotation: String): List<KAnnotatedElement> {
 }
 
 /**
- * Return all the elements annotated with [T].
+ * Return all the elements annotated with [annotation].
  *
  * ___Note: Only the elements passed to ranno
  * annotation processor will be returned by this
@@ -182,7 +181,7 @@ fun elementsWith(annotation: String): List<KAnnotatedElement> {
  *
  * @since 1.0.0
  */
-fun <T : Annotation> elementsWith(annotation: KClass<T>): List<KAnnotatedElement> {
+fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
     return enumerateElementsWith(annotation)
 }
 
@@ -195,14 +194,12 @@ fun <T : Annotation> elementsWith(annotation: KClass<T>): List<KAnnotatedElement
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> elementsWith(): List<KAnnotatedElement> {
-    return elementsWith(T::class)
+inline fun <reified T : Annotation> elementsWith(predicate: (T) -> Boolean = { true }): List<KAnnotatedElement> {
+    return elementsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-//////////////////////////////////////////////////
-
 /**
- * Return all the functions annotated with [T].
+ * Return all the elements annotated with [annotation].
  *
  * ___Note: Only the elements passed to ranno
  * annotation processor will be returned by this
@@ -210,7 +207,35 @@ inline fun <reified T : Annotation> elementsWith(): List<KAnnotatedElement> {
  *
  * @since 1.0.0
  */
-fun <T : Annotation> functionsWith(annotation: KClass<T>): List<KFunction<*>> {
+fun elementsWith(annotation: Annotation): List<KAnnotatedElement> {
+    return elementsWith(annotation::class).filter { it.annotations.contains(annotation) }
+}
+
+//////////////////////////////////////////////////
+
+/**
+ * Return all the functions annotated with [annotation] qualified name.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+fun functionsWith(annotation: String): List<KFunction<*>> {
+    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
+}
+
+/**
+ * Return all the functions annotated with [annotation].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
     return elementsWith(annotation).filterIsInstance<KFunction<*>>()
 }
 
@@ -223,14 +248,12 @@ fun <T : Annotation> functionsWith(annotation: KClass<T>): List<KFunction<*>> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> functionsWith(): List<KFunction<*>> {
-    return functionsWith(T::class)
+inline fun <reified T : Annotation> functionsWith(predicate: (T) -> Boolean = { true }): List<KFunction<*>> {
+    return functionsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-//////////////////////////////////////////////////
-
 /**
- * Return all the properties annotated with [T].
+ * Return all the functions annotated with [annotation].
  *
  * ___Note: Only the elements passed to ranno
  * annotation processor will be returned by this
@@ -238,7 +261,35 @@ inline fun <reified T : Annotation> functionsWith(): List<KFunction<*>> {
  *
  * @since 1.0.0
  */
-fun <T : Annotation> propertiesWith(annotation: KClass<T>): List<KProperty<*>> {
+fun functionsWith(annotation: Annotation): List<KFunction<*>> {
+    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
+}
+
+//////////////////////////////////////////////////
+
+/**
+ * Return all the properties annotated with [annotation] qualified name.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+fun propertiesWith(annotation: String): List<KProperty<*>> {
+    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
+}
+
+/**
+ * Return all the properties annotated with [annotation].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
     return elementsWith(annotation).filterIsInstance<KProperty<*>>()
 }
 
@@ -251,14 +302,12 @@ fun <T : Annotation> propertiesWith(annotation: KClass<T>): List<KProperty<*>> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> propertiesWith(): List<KProperty<*>> {
-    return propertiesWith(T::class)
+inline fun <reified T : Annotation> propertiesWith(predicate: (T) -> Boolean = { true }): List<KProperty<*>> {
+    return propertiesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-//////////////////////////////////////////////////
-
 /**
- * Return all the classes annotated with [T].
+ * Return all the properties annotated with [annotation].
  *
  * ___Note: Only the elements passed to ranno
  * annotation processor will be returned by this
@@ -266,7 +315,35 @@ inline fun <reified T : Annotation> propertiesWith(): List<KProperty<*>> {
  *
  * @since 1.0.0
  */
-fun <T : Annotation> classesWith(annotation: KClass<T>): List<KClass<*>> {
+fun propertiesWith(annotation: Annotation): List<KProperty<*>> {
+    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
+}
+
+//////////////////////////////////////////////////
+
+/**
+ * Return all the classes annotated with [annotation] qualified name.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+fun classesWith(annotation: String): List<KClass<*>> {
+    return elementsWith(annotation).filterIsInstance<KClass<*>>()
+}
+
+/**
+ * Return all the classes annotated with [annotation].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
     return elementsWith(annotation).filterIsInstance<KClass<*>>()
 }
 
@@ -279,14 +356,28 @@ fun <T : Annotation> classesWith(annotation: KClass<T>): List<KClass<*>> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> classesWith(): List<KClass<*>> {
-    return classesWith(T::class)
+inline fun <reified T : Annotation> classesWith(predicate: (T) -> Boolean = { true }): List<KClass<*>> {
+    return classesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Return all the classes annotated with [annotation].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+fun classesWith(annotation: Annotation): List<KClass<*>> {
+    return elementsWith(annotation).filterIsInstance<KClass<*>>()
 }
 
 //////////////////////////////////////////////////
 
 /**
- * Call the functions and properties annotated with [T]
+ * Call the functions and properties annotated with [annotation] qualified name
+ * and matches the given [predicate]
  * with the given [arguments].
  *
  * Only functions and properties that can be invoked with the
@@ -299,13 +390,27 @@ inline fun <reified T : Annotation> classesWith(): List<KClass<*>> {
  * @param arguments the arguments.
  * @since 1.0.0
  */
-fun <T : Annotation> runWith(annotation: KClass<T>, vararg arguments: Any?): List<Any?> {
-    return elementsWith(annotation)
-        .asSequence()
-        .filterIsInstance<KCallable<*>>()
-        .filter { it.canApply(*arguments) }
-        .map { it.call(*arguments) }
-        .toList()
+fun runWith(annotation: String, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
+    return elementsWith(annotation).mapMaybeInvoke(arguments, predicate)
+}
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
+fun runWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
+    return elementsWith(annotation).mapMaybeInvoke(arguments, predicate)
 }
 
 /**
@@ -323,17 +428,12 @@ fun <T : Annotation> runWith(annotation: KClass<T>, vararg arguments: Any?): Lis
  * @param arguments the arguments.
  * @since 1.0.0
  */
-fun <T : Annotation> runWith(annotation: KClass<T>, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
-    return elementsWith(annotation)
-        .asSequence()
-        .filterIsInstance<KCallable<*>>()
-        .filter { it.canApply(*arguments) && predicate(it) }
-        .map { it.call(*arguments) }
-        .toList()
+inline fun <reified T : Annotation> runWith(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
+    return runWith(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
 }
 
 /**
- * Call the functions and properties annotated with [T]
+ * Call the functions and properties annotated with [annotation]
  * with the given [arguments].
  *
  * Only functions and properties that can be invoked with the
@@ -346,51 +446,14 @@ fun <T : Annotation> runWith(annotation: KClass<T>, vararg arguments: Any?, pred
  * @param arguments the arguments.
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> runWith(vararg arguments: Any?): List<Any?> {
-    return runWith(T::class, *arguments)
-}
-
-/**
- * Call the functions and properties annotated with [T]
- * and matches the given [predicate]
- * with the given [arguments].
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> runWith(vararg arguments: Any?, noinline predicate: (KCallable<*>) -> Boolean): List<Any?> {
-    return runWith(T::class, *arguments, predicate = predicate)
+fun runWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
+    return elementsWith(annotation).mapMaybeInvoke(arguments)
 }
 
 //////////////////////////////////////////////////
 
 /**
- * Call the functions and properties annotated with [T]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun <T : Annotation> Any.applyWith(annotation: KClass<T>, vararg arguments: Any?): List<Any?> {
-    return runWith(annotation, this, *arguments)
-}
-
-/**
- * Call the functions and properties annotated with [T]
+ * Call the functions and properties annotated with [annotation]
  * and matches the given [predicate]
  * with [this] as the argument.
  *
@@ -404,30 +467,31 @@ fun <T : Annotation> Any.applyWith(annotation: KClass<T>, vararg arguments: Any?
  * @param arguments additional arguments.
  * @since 1.0.0
  */
-fun <T : Annotation> Any.applyWith(annotation: KClass<T>, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
+fun Any.applyWith(annotation: String, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
+    return runWith(annotation, this, *arguments, predicate = predicate)
+}
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * and matches the given [predicate]
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+fun Any.applyWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
     return runWith(annotation, this, *arguments, predicate = predicate)
 }
 
 /**
  * Call all the functions and properties annotated with [T]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?): List<Any?> {
-    return applyWith(T::class, *arguments)
-}
-
-/**
- * Call all the functions and properties annotated with [T]
  * and matches the given [predicate]
  * with [this] as the argument.
  *
@@ -441,8 +505,26 @@ inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?): List<
  * @param arguments additional arguments.
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinline predicate: (KCallable<*>) -> Boolean): List<Any?> {
-    return applyWith(T::class, *arguments, predicate = predicate)
+inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
+    return applyWith(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+fun Any.applyWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
+    return runWith(annotation, this, *arguments)
 }
 
 //////////////////////////////////////////////////
@@ -473,134 +555,15 @@ annotation class Enumerated(
     val domain: String = ""
 )
 
-/**
- * Call all the functions and properties annotated with [Enumerated]
- * with the given [arguments].
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-fun runEnumerated(vararg arguments: Any?): List<Any?> {
-    return runWith<Enumerated>(*arguments)
-}
-
-/**
- * Call all the functions and properties annotated with [Enumerated]
- * and matches the given [predicate]
- * with the given [arguments].
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-fun runEnumerated(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
-    return runWith<Enumerated>(*arguments, predicate = predicate)
-}
-
-/**
- * Call all the functions and properties annotated with [Enumerated]
- * and matches the given [name] regexp and [domain] regexp
- * with the given [arguments].
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments the arguments.
- * @since 1.0.0
- */
-fun runEnumerated(
-    vararg arguments: Any?,
-    @Language("RegExp") name: String = ".*",
-    @Language("RegExp") domain: String = ".*"
-) {
-    val n = name.toRegex()
-    val d = domain.toRegex()
-    runEnumerated(*arguments) {
-        it.findAnnotations<Enumerated>()
-            .any { it.name matches n && it.domain matches d }
-    }
-}
-
-/**
- * Call all the functions and properties annotated with [Enumerated]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun Any.applyEnumerated(vararg arguments: Any?): List<Any?> {
-    return applyWith<Enumerated>(*arguments)
-}
-
-/**
- * Call all the functions and properties annotated with [Enumerated]
- * and matches the given [predicate]
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun Any.applyEnumerated(vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean): List<Any?> {
-    return applyWith<Enumerated>(*arguments, predicate = predicate)
-}
-
-/**
- * Call all the functions and properties annotated with [Enumerated]
- * and matches the given [name] regexp and [domain] regexp
- * with [this] as the argument.
- *
- * Only functions and properties that can be invoked with the
- * provided arguments will be invoked.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @param arguments additional arguments.
- * @since 1.0.0
- */
-fun Any.applyEnumerated(
-    vararg arguments: Any?,
-    @Language("RegExp") name: String = ".*",
-    @Language("RegExp") domain: String = ".*"
-): List<Any?> {
-    val n = name.toRegex()
-    val d = domain.toRegex()
-    return applyWith<Enumerated>(*arguments) {
-        it.findAnnotations<Enumerated>()
-            .any { it.name matches n && it.domain matches d }
-    }
-}
-
 //////////////////////////////////////////////////
+
+private inline fun Iterable<KAnnotatedElement>.mapMaybeInvoke(
+    arguments: Array<out Any?>,
+    crossinline predicate: (KCallable<*>) -> Boolean = { true }
+): List<Any?> {
+    return asSequence()
+        .filterIsInstance<KCallable<*>>()
+        .filter { it.canApply(*arguments) && predicate(it) }
+        .map { it.call(*arguments) }
+        .toList()
+}
