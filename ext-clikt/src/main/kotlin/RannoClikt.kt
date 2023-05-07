@@ -80,6 +80,81 @@ fun commandsWith(annotation: Annotation): List<CliktCommand> {
 //////////////////////////////////////////////////
 
 /**
+ * Run the command (single) annotated with [annotation] (see [CliktCommand.main])
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @throws IllegalArgumentException if zero or more than one command was found.
+ * @since 1.0.0
+ */
+fun runCommandWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
+    commandsWith(annotation)
+        .single { predicate(it) }
+        .parse(arguments.asList())
+}
+
+/**
+ * Run the command (single) annotated with [annotation] (see [CliktCommand.main])
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @throws IllegalArgumentException if zero or more than one command was found.
+ * @since 1.0.0
+ */
+fun runCommandWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
+    commandsWith(annotation)
+        .single { predicate(it) }
+        .parse(arguments.asList())
+}
+
+/**
+ * Run the command (single) annotated with [T] (see [CliktCommand.main])
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @throws IllegalArgumentException if zero or more than one command was found.
+ * @since 1.0.0
+ */
+inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, crossinline predicate: (T) -> Boolean = { true }) {
+    runCommandWith(T::class, *arguments) { it::class.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Run the command (single) annotated with [annotation] (see [CliktCommand.main])
+ * with the given [arguments].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @throws IllegalArgumentException if zero or more than one command was found.
+ * @since 1.0.0
+ */
+fun runCommandWith(annotation: Annotation, vararg arguments: String) {
+    commandsWith(annotation)
+        .single()
+        .parse(arguments.asList())
+}
+
+//////////////////////////////////////////////////
+
+/**
  * Run the commands annotated with [annotation] (see [CliktCommand.main])
  * and matches the given [predicate]
  * with the given [arguments].
@@ -91,7 +166,7 @@ fun commandsWith(annotation: Annotation): List<CliktCommand> {
  * @param arguments the arguments.
  * @since 1.0.0
  */
-fun runCommandWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean) {
+fun runCommandsWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .filter { predicate(it) }
         .forEach { it.parse(arguments.asList()) }
@@ -109,7 +184,7 @@ fun runCommandWith(annotation: String, vararg arguments: String, predicate: (Cli
  * @param arguments the arguments.
  * @since 1.0.0
  */
-fun runCommandWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean) {
+fun runCommandsWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .filter { predicate(it) }
         .forEach { it.parse(arguments.asList()) }
@@ -127,8 +202,8 @@ fun runCommandWith(annotation: KClass<out Annotation>, vararg arguments: String,
  * @param arguments the arguments.
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, crossinline predicate: (T) -> Boolean) {
-    runCommandWith(T::class, *arguments) { it::class.findAnnotations<T>().any(predicate) }
+inline fun <reified T : Annotation> runCommandsWith(vararg arguments: String, crossinline predicate: (T) -> Boolean = { true }) {
+    runCommandsWith(T::class, *arguments) { it::class.findAnnotations<T>().any(predicate) }
 }
 
 /**
@@ -142,7 +217,7 @@ inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, cro
  * @param arguments the arguments.
  * @since 1.0.0
  */
-fun runCommandWith(annotation: Annotation, vararg arguments: String) {
+fun runCommandsWith(annotation: Annotation, vararg arguments: String) {
     commandsWith(annotation)
         .forEach { it.parse(arguments.asList()) }
 }
