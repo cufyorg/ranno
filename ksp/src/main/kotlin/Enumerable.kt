@@ -19,7 +19,7 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
-import org.cufy.ranno.*
+import org.cufy.ranno.Enumerable
 import java.util.UUID.randomUUID
 
 class EnumerableSymbolProcessorProvider : SymbolProcessorProvider {
@@ -30,13 +30,13 @@ class EnumerableSymbolProcessorProvider : SymbolProcessorProvider {
 
 class EnumerableSymbolProcessor(private val environment: SymbolProcessorEnvironment) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val externalNames = environment.options[EXTERNAL_OPN]?.split(",", " ")
-        val externalAnnotations = externalNames?.mapNotNull { resolver.getClassDeclarationByName(it) }.orEmpty()
-        val annotations = resolver.getSymbolsWithAnnotation(ANNOTATION_QN)
+        val annotations = resolver.obtainCustomAnnotations() +
+                resolver.obtainBuiltinAnnotations() +
+                resolver.obtainOptInAnnotations()
 
-        (annotations + externalAnnotations).forEach { annotation ->
+        annotations.distinct().forEach { annotation ->
             // ensure `annotation` is actually an annotation
-            if (annotation !is KSClassDeclaration || annotation.classKind != ClassKind.ANNOTATION_CLASS) {
+            if (annotation.classKind != ClassKind.ANNOTATION_CLASS) {
                 environment.logger.error("Only annotations are allowed to have $ANNOTATION_QN", annotation)
                 return@forEach
             }
@@ -48,12 +48,35 @@ class EnumerableSymbolProcessor(private val environment: SymbolProcessorEnvironm
 
         return emptyList()
     }
+
+    private fun Resolver.obtainCustomAnnotations(): Sequence<KSClassDeclaration> {
+        return getSymbolsWithAnnotation(ANNOTATION_QN).filterIsInstance<KSClassDeclaration>()
+    }
+
+    private fun Resolver.obtainBuiltinAnnotations(): Sequence<KSClassDeclaration> {
+        return BUILTIN_ANNOTATIONS_QN.asSequence()
+            .mapNotNull { getClassDeclarationByName(it) }
+    }
+
+    private fun Resolver.obtainOptInAnnotations(): Sequence<KSClassDeclaration> {
+        return environment.options[EXTERNAL_OPN].orEmpty().split(",", " ")
+            .asSequence()
+            .mapNotNull { getClassDeclarationByName(it.trim()) }
+    }
 }
 
 //
 
 private const val EXTERNAL_OPN = "ranno.external"
 private val ANNOTATION_QN = Enumerable::class.qualifiedName!!
+private val BUILTIN_ANNOTATIONS_QN = setOf(
+    "org.cufy.ranno.Enumerated",
+    "org.cufy.ranno.ktor.EnumeratedRoute",
+    "org.cufy.ranno.ktor.EnumeratedApplication",
+    "org.cufy.ranno.graphkt.EnumeratedGraphQLRoute",
+    "org.cufy.ranno.graphkt.EnumeratedGraphQLSchema",
+    "org.cufy.ranno.clikt.EnumeratedCommand"
+)
 
 /**
  * A data object containing all the needed data

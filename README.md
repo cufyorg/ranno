@@ -69,7 +69,8 @@ dependencies {
     implementation("org.cufy.ranno:runtime:TAG")
 }
 
-// To process @Enumerable annotations from different modules
+// To process @Enumerable annotations from different modules 
+// builtin annotations does not need to be added here
 ksp {
     arg("ranno.external", listOf(
         "org.cufy.ranno.Enumerated",
