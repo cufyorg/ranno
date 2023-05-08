@@ -86,7 +86,7 @@ annotation class EnumeratedGraphQLSchema(
  * @since 1.0.0
  */
 @Enumerable
-@EnumerableParameters(org.cufy.graphkt.ktor.Configuration::class)
+@EnumerableParameters(org.cufy.graphkt.ktor.ConfigurationBuilder::class)
 @EnumerableReturnType(Unit::class)
 @Repeatable
 @Target(AnnotationTarget.FUNCTION)
