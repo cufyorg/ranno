@@ -75,6 +75,7 @@ private val BUILTIN_ANNOTATIONS_QN = setOf(
     "org.cufy.ranno.ktor.EnumeratedApplication",
     "org.cufy.ranno.graphkt.EnumeratedGraphQLRoute",
     "org.cufy.ranno.graphkt.EnumeratedGraphQLSchema",
+    "org.cufy.ranno.graphkt.EnumeratedGraphQLConfiguration",
     "org.cufy.ranno.clikt.EnumeratedCommand"
 )
 

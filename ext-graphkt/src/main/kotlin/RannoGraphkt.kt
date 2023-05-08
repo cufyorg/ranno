@@ -76,3 +76,31 @@ annotation class EnumeratedGraphQLSchema(
      */
     val domain: String = ""
 )
+
+/**
+ * The default graphql configuration enumeration annotation.
+ *
+ * For structures without custom annotations.
+ *
+ * @author LSafer
+ * @since 1.0.0
+ */
+@Enumerable
+@EnumerableParameters(org.cufy.graphkt.ktor.Configuration::class)
+@EnumerableReturnType(Unit::class)
+@Repeatable
+@Target(AnnotationTarget.FUNCTION)
+annotation class EnumeratedGraphQLConfiguration(
+    /**
+     * The enumeration qualifier.
+     *
+     * @since 1.0.0
+     */
+    val name: String = "",
+    /**
+     * Used to reduce conflict between multiple modules.
+     *
+     * @since 1.0.0
+     */
+    val domain: String = ""
+)
