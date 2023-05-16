@@ -15,7 +15,8 @@
  */
 package org.cufy.ranno
 
-import org.cufy.ranno.internal.canApply
+import org.cufy.ranno.internal.callWith
+import org.cufy.ranno.internal.canCallWith
 import org.cufy.ranno.internal.enumerateElementsWith
 import kotlin.reflect.*
 import kotlin.reflect.full.findAnnotations
@@ -555,6 +556,53 @@ annotation class Enumerated(
     val domain: String = ""
 )
 
+/**
+ * The default configuration enumeration annotation.
+ *
+ * For structures without custom annotations.
+ *
+ * Example (Ktor) :
+ *
+ * ```kt
+ * fun Route.routes() {
+ *      applyWith<EnumeratedConfiguration>(3) {
+ *          it.domain == "com.example"
+ *      }
+ * }
+ *
+ * @EnumeratedConfiguration(domain= "com.example")
+ * fun Route.__Routes() {
+ *      get { /*...*/ }
+ *      post { /*...*/ }
+ * }
+ *
+ * @EnumeratedConfiguration(domain= "com.example")
+ * fun Route.__RoutesWithArgument(number: Int) {
+ * }
+ * ```
+ *
+ * @author LSafer
+ * @since 1.0.0
+ */
+@Enumerable
+@Repeatable
+@EnumerableReturnType(Unit::class)
+@Target(AnnotationTarget.FUNCTION)
+annotation class EnumeratedConfiguration(
+    /**
+     * The enumeration qualifier.
+     *
+     * @since 1.0.0
+     */
+    val name: String = "",
+    /**
+     * Used to reduce conflict between multiple modules.
+     *
+     * @since 1.0.0
+     */
+    val domain: String = ""
+)
+
 //////////////////////////////////////////////////
 
 private inline fun Iterable<KAnnotatedElement>.mapMaybeInvoke(
@@ -563,7 +611,7 @@ private inline fun Iterable<KAnnotatedElement>.mapMaybeInvoke(
 ): List<Any?> {
     return asSequence()
         .filterIsInstance<KCallable<*>>()
-        .filter { it.canApply(*arguments) && predicate(it) }
-        .map { it.call(*arguments) }
+        .filter { it.canCallWith(*arguments) && predicate(it) }
+        .map { it.callWith(*arguments) }
         .toList()
 }

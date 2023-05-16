@@ -132,8 +132,8 @@ internal fun decodeClassnames(classnames: String): List<KClass<*>>? {
     }
 }
 
-internal fun KCallable<*>.canApply(vararg arguments: Any?): Boolean {
-    if (parameters.size != arguments.size)
+internal fun KCallable<*>.canCallWith(vararg arguments: Any?): Boolean {
+    if (parameters.size > arguments.size)
         return false
 
     for (i in parameters.indices) {
@@ -145,6 +145,13 @@ internal fun KCallable<*>.canApply(vararg arguments: Any?): Boolean {
     }
 
     return true
+}
+
+internal fun KCallable<*>.callWith(vararg arguments: Any?): Any? {
+    return if (parameters.size == arguments.size)
+        call(*arguments)
+    else
+        call(*arguments.take(parameters.size).toTypedArray())
 }
 
 fun AccessibleObject.trySetAccessibleAlternative(): Boolean {
