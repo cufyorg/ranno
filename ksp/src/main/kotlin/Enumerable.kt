@@ -71,11 +71,7 @@ private const val EXTERNAL_OPN = "ranno.external"
 private val ANNOTATION_QN = Enumerable::class.qualifiedName!!
 private val BUILTIN_ANNOTATIONS_QN = setOf(
     "org.cufy.ranno.Enumerated",
-    "org.cufy.ranno.ktor.EnumeratedRoute",
-    "org.cufy.ranno.ktor.EnumeratedApplication",
-    "org.cufy.ranno.graphkt.EnumeratedGraphQLRoute",
-    "org.cufy.ranno.graphkt.EnumeratedGraphQLSchema",
-    "org.cufy.ranno.graphkt.EnumeratedGraphQLConfiguration",
+    "org.cufy.ranno.EnumeratedConfiguration",
     "org.cufy.ranno.clikt.EnumeratedCommand"
 )
 
