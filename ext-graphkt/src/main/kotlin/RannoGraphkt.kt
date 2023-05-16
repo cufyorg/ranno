@@ -15,8 +15,9 @@
  */
 package org.cufy.ranno.graphkt
 
+import org.cufy.graphkt.ktor.GraphQLKtorMutableConfiguration
+import org.cufy.graphkt.schema.GraphQLMutableSchema
 import org.cufy.graphkt.schema.GraphQLRoute
-import org.cufy.graphkt.schema.GraphQLSchemaBuilder
 import org.cufy.ranno.Enumerable
 import org.cufy.ranno.EnumerableParameters
 import org.cufy.ranno.EnumerableReturnType
@@ -58,7 +59,7 @@ annotation class EnumeratedGraphQLRoute(
  * @since 1.0.0
  */
 @Enumerable
-@EnumerableParameters(GraphQLSchemaBuilder::class)
+@EnumerableParameters(GraphQLMutableSchema::class)
 @EnumerableReturnType(Unit::class)
 @Repeatable
 @Target(AnnotationTarget.FUNCTION)
@@ -86,7 +87,7 @@ annotation class EnumeratedGraphQLSchema(
  * @since 1.0.0
  */
 @Enumerable
-@EnumerableParameters(org.cufy.graphkt.ktor.ConfigurationBuilder::class)
+@EnumerableParameters(GraphQLKtorMutableConfiguration::class)
 @EnumerableReturnType(Unit::class)
 @Repeatable
 @Target(AnnotationTarget.FUNCTION)
