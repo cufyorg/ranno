@@ -42,12 +42,31 @@ internal fun lookupClass(className: String): KClass<*>? {
 internal fun lookupFunction(klass: KClass<*>, name: String, parameters: List<KClass<*>>): KFunction<*>? {
     return try {
         klass.functions.firstOrNull {
-            it.name == name &&
+            !it.isSuspend &&
+                    it.name == name &&
                     it.parameters.map { it.type.jvmErasure } == parameters
         }
     } catch (_: UnsupportedOperationException) {
         // workaround for toplevel reflection
         lookupToplevelFunction(klass, name, parameters)
+    }
+}
+
+/**
+ * Find a function in [klass] that has the given [name] and [parameters].
+ *
+ * @return the found function. Or `null` if not found.
+ */
+internal fun lookupSuspendFunction(klass: KClass<*>, name: String, parameters: List<KClass<*>>): KFunction<*>? {
+    return try {
+        klass.functions.firstOrNull {
+            it.isSuspend &&
+                    it.name == name &&
+                    it.parameters.map { it.type.jvmErasure } == parameters
+        }
+    } catch (_: UnsupportedOperationException) {
+        // workaround for toplevel reflection
+        lookupToplevelSuspendFunction(klass, name, parameters)
     }
 }
 
@@ -86,6 +105,12 @@ internal fun lookupElement(signature: String): KAnnotatedElement? {
             val parametersSignature = splits.getOrElse(3) { "" }
             val parameters = decodeClassnames(parametersSignature) ?: return null
             lookupFunction(klass, name, parameters)
+        }
+        "suspend-function" -> {
+            val name = splits.getOrElse(2) { "" }
+            val parametersSignature = splits.getOrElse(3) { "" }
+            val parameters = decodeClassnames(parametersSignature) ?: return null
+            lookupSuspendFunction(klass, name, parameters)
         }
         "property" -> {
             val name = splits.getOrElse(2) { "" }

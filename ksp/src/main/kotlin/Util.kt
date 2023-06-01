@@ -54,6 +54,7 @@ val KSAnnotated.representableName: String
         else -> "<${this::class}>"
     }
 
+/** This does not include suspend continuation argument */
 val KSFunctionDeclaration.jvmParameters: List<KSType>
     get() {
         val receivers = listOfNotNull(
