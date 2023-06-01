@@ -147,7 +147,7 @@ private fun ProcessingContext.produceSignature(element: KSAnnotated): String? {
             val className = resolver.getOwnerJvmClassName(element)
             val name = element.simpleName.asString()
             val parameters = element.jvmParameters.map {
-                resolver.mapToJvmSignature(it.declaration)
+                resolver.mapToActualJvmSignature(it.declaration)
             }.joinToString("")
             "function $className $name $parameters"
         }
@@ -155,7 +155,7 @@ private fun ProcessingContext.produceSignature(element: KSAnnotated): String? {
             val className = resolver.getOwnerJvmClassName(element)
             val name = element.simpleName.asString()
             val parameters = element.jvmParameters.map {
-                resolver.mapToJvmSignature(it.declaration)
+                resolver.mapToActualJvmSignature(it.declaration)
             }.joinToString("")
             "property $className $name $parameters"
         }
