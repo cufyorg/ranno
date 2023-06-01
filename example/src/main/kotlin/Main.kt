@@ -104,15 +104,12 @@ class Foo {
 }
 
 fun main() {
-    elementsWith<MyCustomAnnotation>()
+    val out = runWith<MyCustomAnnotation>(Foo(), 0) +
+            runWith<MyCustomAnnotation>(0)
 
-    val out = runWith<MyCustomAnnotation>() +
-            runWith<MyCustomAnnotation>(0) +
-            runWith<MyCustomAnnotation>(Foo()) +
-            runWith<MyCustomAnnotation>(Foo(), 0)
-
+    assertEquals(out.size, 18) // +4 for the argument-less properties and functions
     assertEquals(
         EXPECTED.sorted(),
-        out.filterIsInstance<String>().sorted()
+        out.distinct().filterIsInstance<String>().sorted()
     )
 }
