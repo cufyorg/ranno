@@ -15,10 +15,12 @@
  */
 package org.cufy.ranno
 
-import org.cufy.ranno.internal.callWith
+import org.cufy.ranno.internal.callSuspendWithOrLess
+import org.cufy.ranno.internal.callWithOrLess
 import org.cufy.ranno.internal.canCallWith
 import org.cufy.ranno.internal.enumerateElementsWith
 import kotlin.reflect.*
+import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotations
 
 //////////////////////////////////////////////////
@@ -381,6 +383,11 @@ fun classesWith(annotation: Annotation): List<KClass<*>> {
  * and matches the given [predicate]
  * with the given [arguments].
  *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [runWithSuspend].__
+ *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
  *
@@ -399,6 +406,11 @@ fun runWith(annotation: String, vararg arguments: Any?, predicate: (KCallable<*>
  * Call the functions and properties annotated with [annotation]
  * and matches the given [predicate]
  * with the given [arguments].
+ *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [runWithSuspend].__
  *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
@@ -419,6 +431,11 @@ fun runWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicat
  * and matches the given [predicate]
  * with the given [arguments].
  *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [runWithSuspend].__
+ *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
  *
@@ -437,6 +454,11 @@ inline fun <reified T : Annotation> runWith(vararg arguments: Any?, noinline pre
  * Call the functions and properties annotated with [annotation]
  * with the given [arguments].
  *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [runWithSuspend].__
+ *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
  *
@@ -454,9 +476,91 @@ fun runWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
 //////////////////////////////////////////////////
 
 /**
+ * Call the functions and properties annotated with [annotation] qualified name
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
+suspend fun runWithSuspend(annotation: String, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
+    return elementsWith(annotation).mapMaybeInvokeSuspend(arguments, predicate)
+}
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
+suspend fun runWithSuspend(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
+    return elementsWith(annotation).mapMaybeInvokeSuspend(arguments, predicate)
+}
+
+/**
+ * Call the functions and properties annotated with [T]
+ * and matches the given [predicate]
+ * with the given [arguments].
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
+suspend inline fun <reified T : Annotation> runWithSuspend(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
+    return runWithSuspend(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * with the given [arguments].
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments the arguments.
+ * @since 1.0.0
+ */
+suspend fun runWithSuspend(annotation: Annotation, vararg arguments: Any?): List<Any?> {
+    return elementsWith(annotation).mapMaybeInvokeSuspend(arguments)
+}
+
+//////////////////////////////////////////////////
+
+/**
  * Call the functions and properties annotated with [annotation]
  * and matches the given [predicate]
  * with [this] as the argument.
+ *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [applyWithSuspend].__
  *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
@@ -477,6 +581,11 @@ fun Any.applyWith(annotation: String, vararg arguments: Any?, predicate: (KCalla
  * and matches the given [predicate]
  * with [this] as the argument.
  *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [applyWithSuspend].__
+ *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
  *
@@ -496,6 +605,11 @@ fun Any.applyWith(annotation: KClass<out Annotation>, vararg arguments: Any?, pr
  * and matches the given [predicate]
  * with [this] as the argument.
  *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [applyWithSuspend].__
+ *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
  *
@@ -514,6 +628,11 @@ inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinli
  * Call the functions and properties annotated with [annotation]
  * with [this] as the argument.
  *
+ * __Note: Suspend functions won't be run with this
+ * function event if a continuation is passed as the
+ * last argument. To also invoke suspending functions
+ * use [applyWithSuspend].__
+ *
  * Only functions and properties that can be invoked with the
  * provided arguments will be invoked.
  *
@@ -526,6 +645,83 @@ inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinli
  */
 fun Any.applyWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWith(annotation, this, *arguments)
+}
+
+//////////////////////////////////////////////////
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * and matches the given [predicate]
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+suspend fun Any.applyWithSuspend(annotation: String, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
+    return runWithSuspend(annotation, this, *arguments, predicate = predicate)
+}
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * and matches the given [predicate]
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+suspend fun Any.applyWithSuspend(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KCallable<*>) -> Boolean = { true }): List<Any?> {
+    return runWithSuspend(annotation, this, *arguments, predicate = predicate)
+}
+
+/**
+ * Call all the functions and properties annotated with [T]
+ * and matches the given [predicate]
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+suspend inline fun <reified T : Annotation> Any.applyWithSuspend(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
+    return applyWithSuspend(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Call the functions and properties annotated with [annotation]
+ * with [this] as the argument.
+ *
+ * Only functions and properties that can be invoked with the
+ * provided arguments will be invoked.
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @param arguments additional arguments.
+ * @since 1.0.0
+ */
+suspend fun Any.applyWithSuspend(annotation: Annotation, vararg arguments: Any?): List<Any?> {
+    return runWithSuspend(annotation, this, *arguments)
 }
 
 //////////////////////////////////////////////////
@@ -611,7 +807,17 @@ private inline fun Iterable<KAnnotatedElement>.mapMaybeInvoke(
 ): List<Any?> {
     return asSequence()
         .filterIsInstance<KCallable<*>>()
-        .filter { it.canCallWith(*arguments) && predicate(it) }
-        .map { it.callWith(*arguments) }
+        .filter { !it.isSuspend && it.canCallWith(*arguments) && predicate(it) }
+        .map { it.callWithOrLess(*arguments) }
         .toList()
+}
+
+private suspend inline fun Iterable<KAnnotatedElement>.mapMaybeInvokeSuspend(
+    arguments: Array<out Any?>,
+    crossinline predicate: (KCallable<*>) -> Boolean = { true }
+): List<Any?> {
+    return asSequence()
+        .filterIsInstance<KCallable<*>>()
+        .filter { it.canCallWith(*arguments) && predicate(it) }
+        .mapTo(mutableListOf()) { it.callSuspendWithOrLess(*arguments) }
 }

@@ -17,6 +17,7 @@ package org.cufy.ranno.internal
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier.isStatic
+import kotlin.coroutines.Continuation
 import kotlin.reflect.*
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.kotlinFunction
@@ -35,6 +36,23 @@ internal fun lookupToplevelFunction(klass: KClass<*>, name: String, parameters: 
     return klass.jvmMethods.firstOrNull {
         it.name == name &&
                 it.parameters.map { it.type.kotlin } == parameters
+    }?.kotlinFunction
+}
+
+/**
+ * Use java reflection to obtain a [KFunction] instance
+ * of the function in the given [klass] that has the
+ * given [name] and [parameters].
+ *
+ * This is a workaround for kotlin toplevel reflection.
+ *
+ * @return the found function. Or `null` if not found.
+ */
+internal fun lookupToplevelSuspendFunction(klass: KClass<*>, name: String, parameters: List<KClass<*>>): KFunction<*>? {
+    val parametersWithContinuation = parameters + Continuation::class
+    return klass.jvmMethods.firstOrNull {
+        it.name == name &&
+                it.parameters.map { it.type.kotlin } == parametersWithContinuation
     }?.kotlinFunction
 }
 

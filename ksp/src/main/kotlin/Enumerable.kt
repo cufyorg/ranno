@@ -149,7 +149,11 @@ private fun ProcessingContext.produceSignature(element: KSAnnotated): String? {
             val parameters = element.jvmParameters.map {
                 resolver.mapToActualJvmSignature(it.declaration)
             }.joinToString("")
-            "function $className $name $parameters"
+
+            if (Modifier.SUSPEND in element.modifiers)
+                "suspend-function $className $name $parameters"
+            else
+                "function $className $name $parameters"
         }
         is KSPropertyDeclaration -> {
             val className = resolver.getOwnerJvmClassName(element)

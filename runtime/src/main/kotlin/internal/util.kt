@@ -22,6 +22,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
+import kotlin.reflect.full.callSuspend
 import kotlin.reflect.jvm.jvmErasure
 
 /**
@@ -147,11 +148,18 @@ internal fun KCallable<*>.canCallWith(vararg arguments: Any?): Boolean {
     return true
 }
 
-internal fun KCallable<*>.callWith(vararg arguments: Any?): Any? {
+internal fun KCallable<*>.callWithOrLess(vararg arguments: Any?): Any? {
     return if (parameters.size == arguments.size)
         call(*arguments)
     else
         call(*arguments.take(parameters.size).toTypedArray())
+}
+
+internal suspend fun KCallable<*>.callSuspendWithOrLess(vararg arguments: Any?): Any? {
+    return if (parameters.size == arguments.size)
+        callSuspend(*arguments)
+    else
+        callSuspend(*arguments.take(parameters.size).toTypedArray())
 }
 
 fun AccessibleObject.trySetAccessibleAlternative(): Boolean {

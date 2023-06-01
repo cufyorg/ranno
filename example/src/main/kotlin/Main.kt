@@ -1,7 +1,11 @@
 package org.cufy.ranno.example
 
+import kotlinx.coroutines.runBlocking
 import org.cufy.ranno.*
 import kotlin.test.assertEquals
+import kotlin.test.fail
+
+const val TOPLEVEL_SUSPEND_FUNCTION = "Toplevel Suspend Function"
 
 const val TOPLEVEL_FUNCTION = "Toplevel Function"
 const val TOPLEVEL_EXTENSION_FUNCTION = "Toplevel Extension Function"
@@ -11,6 +15,8 @@ const val TOPLEVEL_PROPERTY_NO_FIELD = "Toplevel Property (No Field)"
 const val TOPLEVEL_EXTENSION_PROPERTY = "Toplevel Extension Property"
 const val TOPLEVEL_DELEGATED_PROPERTY = "Toplevel Delegated Property"
 const val TOPLEVEL_DELEGATED_EXTENSION_PROPERTY = "Toplevel Delegated Extension Property"
+
+const val MEMBER_SUSPEND_FUNCTION = "Member Suspend Function"
 
 const val MEMBER_FUNCTION = "Member Function"
 const val MEMBER_EXTENSION_FUNCTION = "Member Extension Function"
@@ -22,6 +28,7 @@ const val MEMBER_DELEGATED_PROPERTY = "Member Delegated Property"
 const val MEMBER_DELEGATED_EXTENSION_PROPERTY = "Member Delegated Extension Property"
 
 val EXPECTED = listOf(
+    TOPLEVEL_SUSPEND_FUNCTION,
     TOPLEVEL_FUNCTION,
     TOPLEVEL_EXTENSION_FUNCTION,
     TOPLEVEL_PROPERTY,
@@ -29,6 +36,7 @@ val EXPECTED = listOf(
     TOPLEVEL_EXTENSION_PROPERTY,
     TOPLEVEL_DELEGATED_PROPERTY,
     TOPLEVEL_DELEGATED_EXTENSION_PROPERTY,
+    MEMBER_SUSPEND_FUNCTION,
     MEMBER_FUNCTION,
     MEMBER_EXTENSION_FUNCTION,
     MEMBER_PROPERTY,
@@ -40,6 +48,10 @@ val EXPECTED = listOf(
 
 @Enumerable
 annotation class MyCustomAnnotation
+
+@MyCustomAnnotation
+suspend fun toplevelSuspendFunction() =
+    TOPLEVEL_SUSPEND_FUNCTION
 
 @MyCustomAnnotation
 fun toplevelFunction() =
@@ -73,6 +85,10 @@ val Int.toplevelDelegatedExtensionProperty by lazy {
 
 class Foo {
     @MyCustomAnnotation
+    suspend fun memberSuspendFunction() =
+        MEMBER_SUSPEND_FUNCTION
+
+    @MyCustomAnnotation
     fun memberFunction() =
         MEMBER_FUNCTION
 
@@ -103,13 +119,15 @@ class Foo {
     }
 }
 
-fun main() {
-    val out = runWith<MyCustomAnnotation>(Foo(), 0) +
-            runWith<MyCustomAnnotation>(0)
+fun main() = runBlocking {
+    val out = runWithSuspend<MyCustomAnnotation>(Foo(), 0) +
+            runWithSuspend<MyCustomAnnotation>(0)
 
-    assertEquals(out.size, 18) // +4 for the argument-less properties and functions
-    assertEquals(
-        EXPECTED.sorted(),
-        out.distinct().filterIsInstance<String>().sorted()
-    )
+    val missing = EXPECTED subtract out.toSet()
+
+    if (missing.isNotEmpty()) {
+        fail("Component was not run: ${missing.joinToString(", ") { "'$it'" }}")
+    }
+
+    assertEquals(EXPECTED.size + 5, out.size) // +5 for the argument-less properties and functions
 }
