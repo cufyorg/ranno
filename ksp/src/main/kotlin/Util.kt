@@ -15,6 +15,8 @@
  */
 package org.cufy.ranno.ksp
 
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
 import kotlin.reflect.KClass
 
@@ -78,3 +80,21 @@ val KSPropertyDeclaration.jvmParameters: List<KSType>
                 ?.resolve()
         )
     }
+
+@OptIn(KspExperimental::class)
+fun Resolver.mapToActualJvmSignature(declaration: KSDeclaration): String? {
+    val actual = when (declaration) {
+        is KSTypeAlias -> declaration.findActualType()
+        else -> declaration
+    }
+    return mapToJvmSignature(actual)
+}
+
+private fun KSTypeAlias.findActualType(): KSClassDeclaration {
+    val resolvedType = this.type.resolve().declaration
+    return if (resolvedType is KSTypeAlias) {
+        resolvedType.findActualType()
+    } else {
+        resolvedType as KSClassDeclaration
+    }
+}
