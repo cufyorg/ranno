@@ -761,18 +761,18 @@ annotation class Enumerated(
  *
  * ```kt
  * fun Route.routes() {
- *      applyWith<EnumeratedConfiguration>(3) {
+ *      applyWith<EnumeratedScript>(3) {
  *          it.domain == "com.example"
  *      }
  * }
  *
- * @EnumeratedConfiguration(domain= "com.example")
+ * @EnumeratedScript(domain= "com.example")
  * fun Route.__Routes() {
  *      get { /*...*/ }
  *      post { /*...*/ }
  * }
  *
- * @EnumeratedConfiguration(domain= "com.example")
+ * @EnumeratedScript(domain= "com.example")
  * fun Route.__RoutesWithArgument(number: Int) {
  * }
  * ```
@@ -784,7 +784,7 @@ annotation class Enumerated(
 @Repeatable
 @EnumerableReturnType(Unit::class)
 @Target(AnnotationTarget.FUNCTION)
-annotation class EnumeratedConfiguration(
+annotation class EnumeratedScript(
     /**
      * The enumeration qualifier.
      *
