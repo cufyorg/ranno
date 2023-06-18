@@ -20,7 +20,6 @@ import org.cufy.ranno.internal.callWithOrLess
 import org.cufy.ranno.internal.canCallWith
 import org.cufy.ranno.internal.enumerateElementsWith
 import kotlin.reflect.*
-import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotations
 
 //////////////////////////////////////////////////
@@ -798,6 +797,18 @@ annotation class EnumeratedScript(
      */
     val domain: String = ""
 )
+
+/**
+ * Adds compile time restriction to element usage
+ * to be only used via enumeration functions and
+ * not directly.
+ *
+ * @author LSafer
+ * @since 1.0.0
+ */
+@RequiresOptIn("This component is intended to be used via enumeration and not directly.", RequiresOptIn.Level.ERROR)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class EnumerationOnly
 
 //////////////////////////////////////////////////
 
