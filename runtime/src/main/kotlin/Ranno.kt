@@ -20,7 +20,6 @@ import org.cufy.ranno.internal.callWithOrLess
 import org.cufy.ranno.internal.canCallWith
 import org.cufy.ranno.internal.enumerateElementsWith
 import kotlin.reflect.*
-import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotations
 
 //////////////////////////////////////////////////
@@ -761,18 +760,18 @@ annotation class Enumerated(
  *
  * ```kt
  * fun Route.routes() {
- *      applyWith<EnumeratedConfiguration>(3) {
+ *      applyWith<EnumeratedScript>(3) {
  *          it.domain == "com.example"
  *      }
  * }
  *
- * @EnumeratedConfiguration(domain= "com.example")
+ * @EnumeratedScript(domain= "com.example")
  * fun Route.__Routes() {
  *      get { /*...*/ }
  *      post { /*...*/ }
  * }
  *
- * @EnumeratedConfiguration(domain= "com.example")
+ * @EnumeratedScript(domain= "com.example")
  * fun Route.__RoutesWithArgument(number: Int) {
  * }
  * ```
@@ -784,7 +783,7 @@ annotation class Enumerated(
 @Repeatable
 @EnumerableReturnType(Unit::class)
 @Target(AnnotationTarget.FUNCTION)
-annotation class EnumeratedConfiguration(
+annotation class EnumeratedScript(
     /**
      * The enumeration qualifier.
      *
@@ -798,6 +797,18 @@ annotation class EnumeratedConfiguration(
      */
     val domain: String = ""
 )
+
+/**
+ * Adds compile time restriction to element usage
+ * to be only used via enumeration functions and
+ * not directly.
+ *
+ * @author LSafer
+ * @since 1.0.0
+ */
+@RequiresOptIn("This component is intended to be used via enumeration and not directly.", RequiresOptIn.Level.ERROR)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
+annotation class EnumerationOnly
 
 //////////////////////////////////////////////////
 
