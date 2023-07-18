@@ -29,10 +29,11 @@ private val elementCache = mutableMapOf<String, List<KAnnotatedElement>>()
 
 internal fun enumerateElementsWith(annotation: String): List<KAnnotatedElement> {
     return elementCache.getOrPut(annotation) {
-        resourceTree("$ANNOTATION_QN/$annotation")
-            .asSequence()
-            .flatMap { resource(it) }
+        listResourceLocations("$ANNOTATION_QN/$annotation")
+            .asSequence() // -> list of directories uris
+            .flatMap { it.listUris() } // -> list of files uris
             .distinct()
+            .flatMap { it.readLines() } // -> list of lines
             .mapNotNull {
                 lookupElement(it) ?: run {
                     logger.warning { "Element not found at runtime: $it" }
