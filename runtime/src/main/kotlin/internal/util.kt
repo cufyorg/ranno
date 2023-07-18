@@ -15,7 +15,6 @@
  */
 package org.cufy.ranno.internal
 
-import java.lang.ClassLoader.getSystemResources
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Array
 import java.lang.reflect.Field
@@ -55,32 +54,6 @@ internal val KClass<*>.jvmFields: Sequence<Field>
  */
 internal val KClass<*>.qualifiedNameOrThrow: String
     get() = qualifiedName ?: error("Cannot get qualified name of $this")
-
-/**
- * Return a list containing the lines of the resource with the given [name].
- *
- * If the resource is a directory, the returned list will be the names of the files in it.
- */
-internal fun resource(name: String): List<String> {
-    return getSystemResources(name)
-        .asSequence()
-        .flatMap {
-            it.openConnection()
-                .getInputStream()
-                .bufferedReader()
-                .use { it.readLines() }
-        }
-        .toList()
-}
-
-/**
- * Return a list containing the paths of the resources in the directory with the given [name].
- *
- * If the resource is not a directory, the behaviour of this function is undefined.
- */
-internal fun resourceTree(name: String): List<String> {
-    return resource(name).map { "$name/$it" }
-}
 
 /**
  * For a class `A` return the array variant of it `A[]`.
@@ -162,7 +135,7 @@ internal suspend fun KCallable<*>.callSuspendWithOrLess(vararg arguments: Any?):
         callSuspend(*arguments.take(parameters.size).toTypedArray())
 }
 
-fun AccessibleObject.trySetAccessibleAlternative(): Boolean {
+internal fun AccessibleObject.trySetAccessibleAlternative(): Boolean {
     @Suppress("DEPRECATION")
     if (isAccessible)
         return true
