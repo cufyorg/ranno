@@ -16,13 +16,12 @@
 package org.cufy.ranno.internal
 
 import java.lang.reflect.AccessibleObject
-import java.lang.reflect.Array
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.full.callSuspend
-import kotlin.reflect.jvm.jvmErasure
+import kotlin.reflect.KFunction
+import kotlin.reflect.jvm.javaMethod
+import java.lang.reflect.Array as java_lang_reflect_Array
 
 /**
  * Assuming `this` class is a file class (e.g. UtilsKt)
@@ -59,7 +58,7 @@ internal val KClass<*>.qualifiedNameOrThrow: String
  * For a class `A` return the array variant of it `A[]`.
  */
 internal fun KClass<*>.asArrayClass(): KClass<*> {
-    return Array.newInstance(java, 0)::class
+    return java_lang_reflect_Array.newInstance(java, 0)::class
 }
 
 /**
@@ -106,33 +105,11 @@ internal fun decodeClassnames(classnames: String): List<KClass<*>>? {
     }
 }
 
-internal fun KCallable<*>.canCallWith(vararg arguments: Any?): Boolean {
-    if (parameters.size > arguments.size)
-        return false
+internal fun KFunction<*>.trySetAccessibleAlternative(): Boolean {
+    if (this is ToplevelKFunction<*>)
+        return method.trySetAccessibleAlternative()
 
-    for (i in parameters.indices) {
-        val parameter = parameters[i]
-        val argument = arguments[i]
-
-        if (!parameter.type.jvmErasure.isInstance(argument))
-            return false
-    }
-
-    return true
-}
-
-internal fun KCallable<*>.callWithOrLess(vararg arguments: Any?): Any? {
-    return if (parameters.size == arguments.size)
-        call(*arguments)
-    else
-        call(*arguments.take(parameters.size).toTypedArray())
-}
-
-internal suspend fun KCallable<*>.callSuspendWithOrLess(vararg arguments: Any?): Any? {
-    return if (parameters.size == arguments.size)
-        callSuspend(*arguments)
-    else
-        callSuspend(*arguments.take(parameters.size).toTypedArray())
+    return javaMethod?.trySetAccessibleAlternative() == true
 }
 
 internal fun AccessibleObject.trySetAccessibleAlternative(): Boolean {

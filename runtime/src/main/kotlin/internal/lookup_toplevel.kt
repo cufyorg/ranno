@@ -152,10 +152,12 @@ private fun unsupported(): Nothing {
     )
 }
 
-private fun <T> Method.asToplevelKFunction() = ToplevelKFunction<T>(this)
+internal fun <T> Method.asToplevelKFunction() = ToplevelKFunction<T>(this)
 
 /** a custom implementation of [KFunction] for toplevel property accessor */
-private class ToplevelKFunction<T>(private val method: Method) : KFunction<T> {
+internal class ToplevelKFunction<T>(
+    val method: Method
+) : KFunction<T> {
     override val isSuspend get() = false
     override val isFinal get() = true
     override val isOpen get() = false
@@ -220,11 +222,11 @@ private class ToplevelKFunction<T>(private val method: Method) : KFunction<T> {
 }
 
 /** a custom implementation of [KProperty0] for toplevel property */
-private open class ToplevelKProperty0<V>(
+internal open class ToplevelKProperty0<V>(
     override val name: String,
     override val annotations: List<Annotation>,
-    private val get: KFunction<V>,
-    private val delegate: Lazy<Any?>
+    val get: KFunction<V>,
+    val delegate: Lazy<Any?>
 ) : KProperty0<V>, KCallable<V> by get {
     override val isSuspend get() = false
     override val isFinal get() = true
@@ -253,11 +255,11 @@ private open class ToplevelKProperty0<V>(
 }
 
 /** a custom implementation of [KMutableProperty0] for toplevel property */
-private open class ToplevelKMutableProperty0<V>(
+internal open class ToplevelKMutableProperty0<V>(
     name: String,
     annotations: List<Annotation>,
     get: KFunction<V>,
-    private val set: KFunction<Unit>,
+    val set: KFunction<Unit>,
     delegate: Lazy<Any?>
 ) : ToplevelKProperty0<V>(name, annotations, get, delegate), KMutableProperty0<V> {
     override val setter: KMutableProperty0.Setter<V> by lazy {
@@ -276,11 +278,11 @@ private open class ToplevelKMutableProperty0<V>(
 }
 
 /** a custom implementation of [KProperty1] for toplevel property */
-private open class ToplevelKProperty1<out V>(
+internal open class ToplevelKProperty1<out V>(
     override val name: String,
     override val annotations: List<Annotation>,
-    private val get: KFunction<V>,
-    private val delegate: Lazy<Any?>
+    val get: KFunction<V>,
+    val delegate: Lazy<Any?>
 ) : KProperty1<Any?, V>, KCallable<V> by get {
     override val isSuspend get() = false
     override val isFinal get() = true
@@ -309,11 +311,11 @@ private open class ToplevelKProperty1<out V>(
 }
 
 /** a custom implementation of [KMutableProperty1] for toplevel property */
-private open class ToplevelKMutableProperty1<V>(
+internal open class ToplevelKMutableProperty1<V>(
     name: String,
     annotations: List<Annotation>,
     get: KFunction<V>,
-    private val set: KFunction<Unit>,
+    val set: KFunction<Unit>,
     delegate: Lazy<Any?>
 ) : ToplevelKProperty1<V>(name, annotations, get, delegate), KCallable<V>, KMutableProperty1<Any?, V> {
     override val setter: KMutableProperty1.Setter<Any?, V> by lazy {
