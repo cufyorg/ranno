@@ -15,9 +15,12 @@
  */
 package org.cufy.ranno
 
-import org.cufy.ranno.internal.*
 import org.cufy.ranno.internal.enumerateElementsWith
-import kotlin.reflect.*
+import org.cufy.ranno.internal.trySetAccessibleAlternative
+import kotlin.reflect.KAnnotatedElement
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotations
 import kotlin.reflect.jvm.jvmErasure
@@ -61,7 +64,7 @@ annotation class EnumerableParameters(
      *
      * @since 1.0.0
      */
-    vararg val value: KClass<*>
+    vararg val value: KClass<*>,
 )
 
 /**
@@ -84,7 +87,7 @@ annotation class EnumerableReturnType(
      *
      * @since 1.0.0
      */
-    val value: KClass<*>
+    val value: KClass<*>,
 )
 
 /**
@@ -106,7 +109,7 @@ annotation class EnumerableSuperType(
      *
      * @since 1.0.0
      */
-    val value: KClass<*>
+    val value: KClass<*>,
 )
 
 //////////////////////////////////////////////////
@@ -196,8 +199,25 @@ fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> elementsWith(predicate: (T) -> Boolean = { true }): List<KAnnotatedElement> {
+inline fun <reified T : Annotation> elementsWith(predicate: (T) -> Boolean): List<KAnnotatedElement> {
     return elementsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Return all the elements annotated with [T].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+inline fun <reified T : Annotation> elementsWith(): Map<KAnnotatedElement, List<T>> {
+    return elementsWith(T::class)
+        .asSequence()
+        .map { it to it.findAnnotations<T>() }
+        .filter { (_, annotations) -> annotations.isNotEmpty() }
+        .toMap()
 }
 
 /**
@@ -250,8 +270,25 @@ fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> functionsWith(predicate: (T) -> Boolean = { true }): List<KFunction<*>> {
+inline fun <reified T : Annotation> functionsWith(predicate: (T) -> Boolean): List<KFunction<*>> {
     return functionsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Return all the functions annotated with [T].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+inline fun <reified T : Annotation> functionsWith(): Map<KFunction<*>, List<T>> {
+    return functionsWith(T::class)
+        .asSequence()
+        .map { it to it.findAnnotations<T>() }
+        .filter { (_, annotations) -> annotations.isNotEmpty() }
+        .toMap()
 }
 
 /**
@@ -304,8 +341,25 @@ fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> propertiesWith(predicate: (T) -> Boolean = { true }): List<KProperty<*>> {
+inline fun <reified T : Annotation> propertiesWith(predicate: (T) -> Boolean): List<KProperty<*>> {
     return propertiesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Return all the properties annotated with [T].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+inline fun <reified T : Annotation> propertiesWith(): Map<KProperty<*>, List<T>> {
+    return propertiesWith(T::class)
+        .asSequence()
+        .map { it to it.findAnnotations<T>() }
+        .filter { (_, annotations) -> annotations.isNotEmpty() }
+        .toMap()
 }
 
 /**
@@ -358,8 +412,25 @@ fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
  *
  * @since 1.0.0
  */
-inline fun <reified T : Annotation> classesWith(predicate: (T) -> Boolean = { true }): List<KClass<*>> {
+inline fun <reified T : Annotation> classesWith(predicate: (T) -> Boolean): List<KClass<*>> {
     return classesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
+}
+
+/**
+ * Return all the classes annotated with [T].
+ *
+ * ___Note: Only the elements passed to ranno
+ * annotation processor will be returned by this
+ * function.___
+ *
+ * @since 1.0.0
+ */
+inline fun <reified T : Annotation> classesWith(): Map<KClass<*>, List<T>> {
+    return classesWith(T::class)
+        .asSequence()
+        .map { it to it.findAnnotations<T>() }
+        .filter { (_, annotations) -> annotations.isNotEmpty() }
+        .toMap()
 }
 
 /**
@@ -770,7 +841,7 @@ annotation class Enumerated(
      *
      * @since 1.0.0
      */
-    val domain: String = ""
+    val domain: String = "",
 )
 
 /**
@@ -817,7 +888,7 @@ annotation class EnumeratedScript(
      *
      * @since 1.0.0
      */
-    val domain: String = ""
+    val domain: String = "",
 )
 
 /**
