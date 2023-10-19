@@ -17,12 +17,11 @@ package org.cufy.ranno
 
 import org.cufy.ranno.internal.enumerateElementsWith
 import org.cufy.ranno.internal.trySetAccessibleAlternative
-import kotlin.reflect.KAnnotatedElement
-import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty
+import kotlin.reflect.*
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotations
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.isSupertypeOf
 import kotlin.reflect.jvm.jvmErasure
 
 //////////////////////////////////////////////////
@@ -978,4 +977,37 @@ suspend fun KFunction<*>.callWithSuspend(vararg arguments: Any?): Any? {
         callSuspend(*arguments)
     else
         callSuspend(*arguments.take(parameters.size).toTypedArray())
+}
+
+/**
+ * Return true if this function can be call with the given [parameters]
+ * and returns instance of [returnType].
+ *
+ * @param suspend pass true to match suspend functions
+ */
+fun KFunction<*>.matchSignature(returnType: KType, vararg parameters: KType, suspend: Boolean = false): Boolean {
+    return matchSignature(returnType, parameters.asList(), suspend)
+}
+
+/**
+ * Return true if this function can be call with the given [parameters]
+ * and returns instance of [returnType].
+ *
+ * @param suspend pass true to match suspend functions
+ */
+fun KFunction<*>.matchSignature(returnType: KType, parameters: List<KType>, suspend: Boolean = false): Boolean {
+    if (!suspend && this.isSuspend)
+        return false
+
+    if (!this.returnType.isSubtypeOf(returnType))
+        return false
+
+    if (this.parameters.size != parameters.size)
+        return false
+
+    for (i in this.parameters.indices)
+        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
+            return false
+
+    return true
 }
