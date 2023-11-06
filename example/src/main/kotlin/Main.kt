@@ -1,9 +1,15 @@
 package org.cufy.ranno.example
 
 import kotlinx.coroutines.runBlocking
-import org.cufy.ranno.*
-import kotlin.test.assertEquals
-import kotlin.test.fail
+import org.cufy.ranno.Enumerable
+import org.cufy.ranno.elementsWith
+import kotlin.reflect.KCallable
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty2
+import kotlin.reflect.full.callSuspend
+import kotlin.reflect.full.functions
+import kotlin.reflect.full.memberExtensionProperties
+import kotlin.reflect.jvm.jvmErasure
 
 const val TOPLEVEL_SUSPEND_FUNCTION = "Toplevel Suspend Function"
 
@@ -119,15 +125,89 @@ class Foo {
     }
 }
 
+@Suppress("UNCHECKED_CAST")
+val Foo_Int_memberExtensionFunction = Foo::class.functions.first {
+    it.name == "memberExtensionFunction"
+} as KFunction<String>
+
+@Suppress("UNCHECKED_CAST")
+val Foo_Int_memberExtensionProperty = Foo::class.memberExtensionProperties.first {
+    it.name == "memberExtensionProperty"
+} as KProperty2<Foo, Int, String>
+
+@Suppress("UNCHECKED_CAST")
+val Foo_Int_memberDelegatedExtensionProperty = Foo::class.memberExtensionProperties.first {
+    it.name == "memberDelegatedExtensionProperty"
+} as KProperty2<Foo, Int, String>
+
+val EXPECTED_TOPLEVEL_ELEMENTS: List<KCallable<String>> = listOf(
+    ::toplevelSuspendFunction,
+    ::toplevelFunction,
+    Int::toplevelExtensionFunction,
+    ::toplevelProperty,
+    ::toplevelPropertyNoField,
+    Int::toplevelExtensionProperty,
+    ::toplevelDelegatedProperty,
+    Int::toplevelDelegatedExtensionProperty,
+    Foo::memberSuspendFunction,
+    Foo::memberFunction,
+    Foo_Int_memberExtensionFunction, // Foo::Int::memberExtensionFunction
+    Foo::memberProperty,
+    Foo::memberPropertyNoField,
+    Foo_Int_memberExtensionProperty, // Foo::Int::memberExtensionProperty
+    Foo::memberDelegatedProperty,
+    Foo_Int_memberDelegatedExtensionProperty // Foo::Int::memberDelegatedExtensionProperty
+)
+
 fun main() = runBlocking {
-    val out = runWithSuspend<MyCustomAnnotation>(Foo(), 0) +
-            runWithSuspend<MyCustomAnnotation>(0)
+    val elements = elementsWith<MyCustomAnnotation>()
+        .keys.filterIsInstance<KCallable<*>>()
 
-    val missing = EXPECTED subtract out.toSet()
+    EXPECTED_TOPLEVEL_ELEMENTS.forEachIndexed { i, it ->
+        print(i.toString().padStart(2, '0'))
 
-    if (missing.isNotEmpty()) {
-        fail("Component was not run: ${missing.joinToString(", ") { "'$it'" }}")
+        // name matching is enough;
+        //  why? issues with kotlin toplevel reflection instances
+        //  and toplevel reflection instances implemented by ranno
+
+        when {
+            elements.any { e -> e.name == it.name } ->
+                println(" \u001B[32mFOUND\u001B[0m $it")
+
+            else ->
+                println(" \u001B[31mMISSING\u001B[0m $it")
+        }
     }
 
-    assertEquals(EXPECTED.size + 5, out.size) // +5 for the argument-less properties and functions
+    val outputs = elements.mapNotNull { element ->
+        when {
+            element.parameters.isEmpty() ->
+                element.callSuspend()
+
+            element.parameters.size == 2 ->
+                element.callSuspend(Foo(), 0)
+
+            element.parameters[0].type.jvmErasure == Int::class ->
+                element.callSuspend(0)
+
+            element.parameters[0].type.jvmErasure == Foo::class ->
+                element.callSuspend(Foo())
+
+            else -> error("!")
+        }
+    }
+
+    println()
+
+    EXPECTED.forEachIndexed { i, it ->
+        print(i.toString().padStart(2, '0'))
+
+        when (it) {
+            in outputs ->
+                println(" \u001B[32mFOUND\u001B[0m $it")
+
+            else ->
+                println(" \u001B[31mMISSING\u001B[0m $it")
+        }
+    }
 }

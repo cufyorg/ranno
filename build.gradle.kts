@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.8.0" apply false
+    kotlin("jvm") version libs.versions.kotlin apply false
     id("maven-publish")
 }
 
@@ -8,8 +8,12 @@ version = "1.0.0"
 
 buildscript {
     dependencies {
-        classpath(kotlin("gradle-plugin", version = "1.8.0"))
+        classpath(kotlin("gradle-plugin", version = "1.9.20"))
     }
+}
+
+tasks.wrapper {
+    gradleVersion = "8.2.1"
 }
 
 subprojects {
@@ -20,7 +24,7 @@ subprojects {
 
     if (name == "example") return@subprojects
 
-    group = "org.cufy.graphkt"
+    group = "org.cufy.ranno"
 
     afterEvaluate {
         publishing {
