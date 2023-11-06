@@ -15,8 +15,10 @@
  */
 package org.cufy.ranno.internal
 
-import kotlin.UnsupportedOperationException
-import kotlin.reflect.*
+import kotlin.reflect.KAnnotatedElement
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.jvmErasure
 
@@ -41,12 +43,15 @@ internal fun lookupClass(className: String): KClass<*>? {
  */
 internal fun lookupFunction(klass: KClass<*>, name: String, parameters: List<KClass<*>>): KFunction<*>? {
     return try {
-        klass.functions.firstOrNull {
+        klass.functions.first {
             !it.isSuspend &&
                     it.name == name &&
                     it.parameters.map { it.type.jvmErasure } == parameters
         }
     } catch (_: UnsupportedOperationException) {
+        // workaround for toplevel reflection
+        lookupToplevelFunction(klass, name, parameters)
+    } catch (_: NoSuchElementException) {
         // workaround for toplevel reflection
         lookupToplevelFunction(klass, name, parameters)
     }
@@ -59,12 +64,15 @@ internal fun lookupFunction(klass: KClass<*>, name: String, parameters: List<KCl
  */
 internal fun lookupSuspendFunction(klass: KClass<*>, name: String, parameters: List<KClass<*>>): KFunction<*>? {
     return try {
-        klass.functions.firstOrNull {
+        klass.functions.first {
             it.isSuspend &&
                     it.name == name &&
                     it.parameters.map { it.type.jvmErasure } == parameters
         }
     } catch (_: UnsupportedOperationException) {
+        // workaround for toplevel reflection
+        lookupToplevelSuspendFunction(klass, name, parameters)
+    } catch (_: NoSuchElementException) {
         // workaround for toplevel reflection
         lookupToplevelSuspendFunction(klass, name, parameters)
     }
@@ -77,14 +85,18 @@ internal fun lookupSuspendFunction(klass: KClass<*>, name: String, parameters: L
  */
 internal fun lookupProperty(klass: KClass<*>, name: String, parameters: List<KClass<*>>): KProperty<*>? {
     return try {
-        klass.members.filterIsInstance<KProperty<*>>().firstOrNull {
+        klass.members.filterIsInstance<KProperty<*>>().first {
             it.name == name &&
                     it.getter.parameters.map { it.type.jvmErasure } == parameters
         }
     } catch (_: UnsupportedOperationException) {
         // workaround for toplevel reflection
         lookupToplevelProperty(klass, name, parameters)
-                ?: lookupToplevelPropertyNoBackingField(klass, name, parameters)
+            ?: lookupToplevelPropertyNoBackingField(klass, name, parameters)
+    } catch (_: NoSuchElementException) {
+        // workaround for toplevel reflection
+        lookupToplevelProperty(klass, name, parameters)
+            ?: lookupToplevelPropertyNoBackingField(klass, name, parameters)
     }
 }
 
@@ -106,18 +118,21 @@ internal fun lookupElement(signature: String): KAnnotatedElement? {
             val parameters = decodeClassnames(parametersSignature) ?: return null
             lookupFunction(klass, name, parameters)
         }
+
         "suspend-function" -> {
             val name = splits.getOrElse(2) { "" }
             val parametersSignature = splits.getOrElse(3) { "" }
             val parameters = decodeClassnames(parametersSignature) ?: return null
             lookupSuspendFunction(klass, name, parameters)
         }
+
         "property" -> {
             val name = splits.getOrElse(2) { "" }
             val parametersSignature = splits.getOrElse(3) { "" }
             val parameters = decodeClassnames(parametersSignature) ?: return null
             lookupProperty(klass, name, parameters)
         }
+
         else -> null
     }
 

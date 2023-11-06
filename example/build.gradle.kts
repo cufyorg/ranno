@@ -1,7 +1,6 @@
 plugins {
-    kotlin("kapt")
     kotlin("jvm")
-    id("com.google.devtools.ksp") version "1.8.0-1.0.9"
+    alias(libs.plugins.ksp)
 }
 
 ksp {
