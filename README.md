@@ -128,11 +128,10 @@ fun main() {
 
     // a filter block can be passed 
     val r1 = runWith<MyAnnotation>(arg0, arg1, arg2 /* ... */) {
-        it.findAnnotations<MyAnnotation>()
-            .any { it.value == "" }
+        it.value == ""
     }
 
     // another way of running the annotated elements
-    val r2 = applyWith<MyAnnotation>(arg1, arg2 /* ... */)
+    val r2 = arg0.applyWith<MyAnnotation>(arg1, arg2 /* ... */)
 }
 ```
