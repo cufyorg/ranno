@@ -16,7 +16,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
-    implementation(project(":runtime"))
+    implementation(project(":ranno-runtime"))
 
-    ksp(project(":ksp"))
+    ksp(project(":ranno-ksp"))
 }

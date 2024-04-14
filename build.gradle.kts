@@ -22,7 +22,7 @@ subprojects {
         maven { url = uri("https://jitpack.io") }
     }
 
-    if (name == "example") return@subprojects
+    if (name == "ranno-example") return@subprojects
 
     group = "org.cufy.ranno"
 

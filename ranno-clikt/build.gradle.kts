@@ -7,8 +7,9 @@ plugins {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
-    implementation(project(":runtime"))
+    implementation(project(":ranno-runtime"))
 
     implementation("com.github.ajalt.clikt:clikt:3.5.2")
-    ksp(project(":ksp"))
+
+    ksp(project(":ranno-ksp"))
 }
