@@ -8,6 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":runtime"))
+    implementation(project(":ranno-runtime"))
     implementation(libs.ksp)
 }

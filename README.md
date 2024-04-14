@@ -64,9 +64,9 @@ repositories {
 
 dependencies {
     // Replace TAG with the desired version
-    ksp("org.cufy.ranno:ksp:TAG")
+    ksp("org.cufy.ranno:ranno-ksp:TAG")
 
-    implementation("org.cufy.ranno:runtime:TAG")
+    implementation("org.cufy.ranno:ranno-runtime:TAG")
 }
 
 // To process @Enumerable annotations from different modules 

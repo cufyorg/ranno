@@ -14,7 +14,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "ranno"
 
-include(":ksp")
-include(":runtime")
-include(":example")
-include(":ext-clikt")
+// include directories that starts with "ranno-"
+for (file in rootDir.listFiles().orEmpty()) {
+    if (file.isDirectory && file.name.startsWith("ranno-")) {
+        include(":${file.name}")
+    }
+}
