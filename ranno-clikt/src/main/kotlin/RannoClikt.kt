@@ -34,6 +34,7 @@ import kotlin.reflect.full.findAnnotations
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun commandsWith(annotation: String, predicate: (KClass<*>) -> Boolean = { true }): List<CliktCommand> {
     return classesWith(annotation).mapMaybeCommand(predicate)
 }
@@ -47,6 +48,7 @@ fun commandsWith(annotation: String, predicate: (KClass<*>) -> Boolean = { true 
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun commandsWith(annotation: KClass<out Annotation>, predicate: (KClass<*>) -> Boolean = { true }): List<CliktCommand> {
     return classesWith(annotation).mapMaybeCommand(predicate)
 }
@@ -60,6 +62,7 @@ fun commandsWith(annotation: KClass<out Annotation>, predicate: (KClass<*>) -> B
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> commandsWith(noinline predicate: (T) -> Boolean = { true }): List<CliktCommand> {
     return commandsWith(T::class) { it.findAnnotations<T>().any(predicate) }
 }
@@ -73,6 +76,7 @@ inline fun <reified T : Annotation> commandsWith(noinline predicate: (T) -> Bool
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun commandsWith(annotation: Annotation): List<CliktCommand> {
     return classesWith(annotation).mapMaybeCommand()
 }
@@ -92,6 +96,7 @@ fun commandsWith(annotation: Annotation): List<CliktCommand> {
  * @throws IllegalArgumentException if zero or more than one command was found.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runCommandWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .single { predicate(it) }
@@ -111,6 +116,7 @@ fun runCommandWith(annotation: String, vararg arguments: String, predicate: (Cli
  * @throws IllegalArgumentException if zero or more than one command was found.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runCommandWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .single { predicate(it) }
@@ -130,6 +136,7 @@ fun runCommandWith(annotation: KClass<out Annotation>, vararg arguments: String,
  * @throws IllegalArgumentException if zero or more than one command was found.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, crossinline predicate: (T) -> Boolean = { true }) {
     runCommandWith(T::class, *arguments) { it::class.findAnnotations<T>().any(predicate) }
 }
@@ -146,6 +153,7 @@ inline fun <reified T : Annotation> runCommandWith(vararg arguments: String, cro
  * @throws IllegalArgumentException if zero or more than one command was found.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runCommandWith(annotation: Annotation, vararg arguments: String) {
     commandsWith(annotation)
         .single()
@@ -166,6 +174,7 @@ fun runCommandWith(annotation: Annotation, vararg arguments: String) {
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runCommandsWith(annotation: String, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .filter { predicate(it) }
@@ -184,6 +193,7 @@ fun runCommandsWith(annotation: String, vararg arguments: String, predicate: (Cl
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runCommandsWith(annotation: KClass<out Annotation>, vararg arguments: String, predicate: (CliktCommand) -> Boolean = { true }) {
     commandsWith(annotation)
         .filter { predicate(it) }
@@ -202,6 +212,7 @@ fun runCommandsWith(annotation: KClass<out Annotation>, vararg arguments: String
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> runCommandsWith(vararg arguments: String, crossinline predicate: (T) -> Boolean = { true }) {
     runCommandsWith(T::class, *arguments) { it::class.findAnnotations<T>().any(predicate) }
 }
@@ -217,6 +228,7 @@ inline fun <reified T : Annotation> runCommandsWith(vararg arguments: String, cr
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runCommandsWith(annotation: Annotation, vararg arguments: String) {
     commandsWith(annotation)
         .forEach { it.main(arguments.asList()) }
@@ -236,6 +248,7 @@ fun runCommandsWith(annotation: Annotation, vararg arguments: String) {
 @Repeatable
 @EnumerableSuperType(CliktCommand::class)
 @Target(AnnotationTarget.CLASS)
+@Deprecated(DEPRECATION_MSG)
 annotation class EnumeratedCommand(
     /**
      * The enumeration qualifier.
@@ -264,3 +277,6 @@ private inline fun Iterable<KClass<*>>.mapMaybeCommand(
 }
 
 //////////////////////////////////////////////////
+
+private const val DEPRECATION_MSG = "This API was unnecessarily specific thus it was deprecated." +
+        "A more manual approach should be used in applications instead."
