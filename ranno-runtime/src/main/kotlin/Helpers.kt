@@ -25,10 +25,7 @@ import kotlin.reflect.KAnnotatedElement
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.extensionReceiverParameter
 import kotlin.reflect.full.findAnnotations
-import kotlin.reflect.full.instanceParameter
-import kotlin.reflect.jvm.jvmErasure
 
 //////////////////////////////////////////////////
 
@@ -55,7 +52,8 @@ fun elementsWith(annotation: String): List<KAnnotatedElement> {
  * @since 1.0.0
  */
 fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
-    return enumerateElementsWith(annotation)
+    requireEnumerable(annotation)
+    return elementsWith(annotation.qualifiedNameOrThrow)
 }
 
 /**
@@ -68,7 +66,8 @@ fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
  * @since 1.0.0
  */
 fun elementsWith(annotation: Annotation): List<KAnnotatedElement> {
-    return elementsWith(annotation::class).filter { annotation in it.annotations }
+    return elementsWith(annotation::class)
+        .filter { annotation in it.annotations }
 }
 
 /**
@@ -100,7 +99,8 @@ inline fun <reified T : Annotation> elementsWith(): Map<KAnnotatedElement, List<
  * @since 1.0.0
  */
 fun functionsWith(annotation: String): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KFunction<*>>()
 }
 
 /**
@@ -113,7 +113,8 @@ fun functionsWith(annotation: String): List<KFunction<*>> {
  * @since 1.0.0
  */
 fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KFunction<*>>()
 }
 
 /**
@@ -126,7 +127,8 @@ fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
  * @since 1.0.0
  */
 fun functionsWith(annotation: Annotation): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KFunction<*>>()
 }
 
 /**
@@ -158,7 +160,8 @@ inline fun <reified T : Annotation> functionsWith(): Map<KFunction<*>, List<T>> 
  * @since 1.0.0
  */
 fun propertiesWith(annotation: String): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KProperty<*>>()
 }
 
 /**
@@ -171,7 +174,8 @@ fun propertiesWith(annotation: String): List<KProperty<*>> {
  * @since 1.0.0
  */
 fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KProperty<*>>()
 }
 
 /**
@@ -184,7 +188,8 @@ fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
  * @since 1.0.0
  */
 fun propertiesWith(annotation: Annotation): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KProperty<*>>()
 }
 
 /**
@@ -216,7 +221,8 @@ inline fun <reified T : Annotation> propertiesWith(): Map<KProperty<*>, List<T>>
  * @since 1.0.0
  */
 fun classesWith(annotation: String): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KClass<*>>()
 }
 
 /**
@@ -229,7 +235,8 @@ fun classesWith(annotation: String): List<KClass<*>> {
  * @since 1.0.0
  */
 fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KClass<*>>()
 }
 
 /**
@@ -242,7 +249,8 @@ fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
  * @since 1.0.0
  */
 fun classesWith(annotation: Annotation): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
+    return elementsWith(annotation)
+        .filterIsInstance<KClass<*>>()
 }
 
 /**

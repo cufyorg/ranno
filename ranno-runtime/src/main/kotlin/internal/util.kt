@@ -15,11 +15,13 @@
  */
 package org.cufy.ranno.internal
 
+import org.cufy.ranno.Enumerable
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.javaMethod
 import java.lang.reflect.Array as java_lang_reflect_Array
 
@@ -92,8 +94,9 @@ internal fun decodeClassnames(classnames: String): List<KClass<*>>? {
                 val classname = classnames.substring(i, terminal)
                 i = terminal + 1
                 lookupClass(classname.replace("/", "."))
-                        ?: return null
+                    ?: return null
             }
+
             else -> error("Malformed parameters signature $classnames")
         }
     }
@@ -128,4 +131,13 @@ internal fun AccessibleObject.trySetAccessibleAlternative(): Boolean {
     }
 
     return false
+}
+
+/**
+ * Ensure [annotation] is annotated with [Enumerable]. Or throw if not.
+ */
+internal fun requireEnumerable(annotation: KClass<out Annotation>) {
+    require(annotation.hasAnnotation<Enumerable>()) {
+        "Annotation must be annotated with @Enumerable for annotatedElements() to work"
+    }
 }
