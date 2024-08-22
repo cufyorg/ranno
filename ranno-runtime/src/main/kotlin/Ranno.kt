@@ -1,3 +1,6 @@
+@file:JvmName("RannoKt")
+@file:JvmMultifileClass
+
 /*
  *	Copyright 2023 cufy.org
  *
@@ -15,14 +18,16 @@
  */
 package org.cufy.ranno
 
-import org.cufy.ranno.internal.enumerateElementsWith
 import org.cufy.ranno.internal.trySetAccessibleAlternative
-import kotlin.reflect.*
+import kotlin.reflect.KAnnotatedElement
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotations
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.isSupertypeOf
 import kotlin.reflect.jvm.jvmErasure
+
+// @formatter:off
 
 //////////////////////////////////////////////////
 
@@ -107,82 +112,6 @@ annotation class EnumerableSuperType(
 //////////////////////////////////////////////////
 
 /**
- * Return all the elements annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedElements: List<KAnnotatedElement>
-    get() = elementsWith(this)
-
-/**
- * Return all the functions annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedFunctions: List<KFunction<*>>
-    get() = functionsWith(this)
-
-/**
- * Return all the properties annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedProperties: List<KProperty<*>>
-    get() = propertiesWith(this)
-
-/**
- * Return all the classes annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedClasses: List<KClass<*>>
-    get() = classesWith(this)
-
-//////////////////////////////////////////////////
-
-/**
- * Return all the elements annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun elementsWith(annotation: String): List<KAnnotatedElement> {
-    return enumerateElementsWith(annotation)
-}
-
-/**
- * Return all the elements annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
-    return enumerateElementsWith(annotation)
-}
-
-/**
  * Return all the elements annotated with [T].
  *
  * ___Note: Only the elements passed to ranno
@@ -196,63 +125,7 @@ inline fun <reified T : Annotation> elementsWith(predicate: (T) -> Boolean): Lis
     return elementsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-/**
- * Return all the elements annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> elementsWith(): Map<KAnnotatedElement, List<T>> {
-    return elementsWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the elements annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun elementsWith(annotation: Annotation): List<KAnnotatedElement> {
-    return elementsWith(annotation::class).filter { annotation in it.annotations }
-}
-
 //////////////////////////////////////////////////
-
-/**
- * Return all the functions annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun functionsWith(annotation: String): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
-}
-
-/**
- * Return all the functions annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
-}
 
 /**
  * Return all the functions annotated with [T].
@@ -268,63 +141,7 @@ inline fun <reified T : Annotation> functionsWith(predicate: (T) -> Boolean): Li
     return functionsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-/**
- * Return all the functions annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> functionsWith(): Map<KFunction<*>, List<T>> {
-    return functionsWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the functions annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun functionsWith(annotation: Annotation): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
-}
-
 //////////////////////////////////////////////////
-
-/**
- * Return all the properties annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun propertiesWith(annotation: String): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
-}
-
-/**
- * Return all the properties annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
-}
 
 /**
  * Return all the properties annotated with [T].
@@ -340,63 +157,7 @@ inline fun <reified T : Annotation> propertiesWith(predicate: (T) -> Boolean): L
     return propertiesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-/**
- * Return all the properties annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> propertiesWith(): Map<KProperty<*>, List<T>> {
-    return propertiesWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the properties annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun propertiesWith(annotation: Annotation): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
-}
-
 //////////////////////////////////////////////////
-
-/**
- * Return all the classes annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun classesWith(annotation: String): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
-}
-
-/**
- * Return all the classes annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
-}
 
 /**
  * Return all the classes annotated with [T].
@@ -410,36 +171,6 @@ fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
 @Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> classesWith(predicate: (T) -> Boolean): List<KClass<*>> {
     return classesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
-}
-
-/**
- * Return all the classes annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> classesWith(): Map<KClass<*>, List<T>> {
-    return classesWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the classes annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun classesWith(annotation: Annotation): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
 }
 
 //////////////////////////////////////////////////
@@ -957,39 +688,6 @@ suspend fun KFunction<*>.callWithSuspend(vararg arguments: Any?): Any? {
         callSuspend(*arguments)
     else
         callSuspend(*arguments.take(parameters.size).toTypedArray())
-}
-
-/**
- * Return true if this function can be call with the given [parameters]
- * and returns instance of [returnType].
- *
- * @param suspend pass true to match suspend functions
- */
-fun KFunction<*>.matchSignature(returnType: KType, vararg parameters: KType, suspend: Boolean = false): Boolean {
-    return matchSignature(returnType, parameters.asList(), suspend)
-}
-
-/**
- * Return true if this function can be call with the given [parameters]
- * and returns instance of [returnType].
- *
- * @param suspend pass true to match suspend functions
- */
-fun KFunction<*>.matchSignature(returnType: KType, parameters: List<KType>, suspend: Boolean = false): Boolean {
-    if (!suspend && this.isSuspend)
-        return false
-
-    if (!this.returnType.isSubtypeOf(returnType))
-        return false
-
-    if (this.parameters.size != parameters.size)
-        return false
-
-    for (i in this.parameters.indices)
-        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
-            return false
-
-    return true
 }
 
 private const val DEPRECATION_MSG = "This API was unnecessarily specific thus it was deprecated." +
