@@ -88,7 +88,11 @@ internal fun lookupToplevelProperty(klass: KClass<*>, name: String, parameters: 
  *
  * @return the found property. Or `null` if not found.
  */
-internal fun lookupToplevelPropertyNoBackingField(klass: KClass<*>, name: String, parameters: List<KClass<*>>): KProperty<*>? {
+internal fun lookupToplevelPropertyNoBackingField(
+    klass: KClass<*>,
+    name: String,
+    parameters: List<KClass<*>>
+): KProperty<*>? {
     val getterName = "get${name.replaceFirstChar { it.uppercase() }}"
     val setterName = "set${name.replaceFirstChar { it.uppercase() }}"
     val annotationsName = "$getterName\$annotations"
@@ -96,23 +100,45 @@ internal fun lookupToplevelPropertyNoBackingField(klass: KClass<*>, name: String
 
     val methods = klass.jvmMethods
 
-    // find the getter method; if not found, the property does not exist
-    val getter = methods.firstOrNull {
-        it.name == getterName &&
-                it.parameters.map { it.type.kotlin } == parameters
-    }?.asToplevelKFunction<Any?>() ?: return null
+    // find the getter method
+    val getterMethod = methods.firstOrNull {
+        it.name == getterName && it.parameters.map { it.type.kotlin } == parameters
+    }
+
+    // if getter method not found, the property does not exist
+    getterMethod ?: return null
+
+    // just to make sure; a toplevel property getter can
+    // either accept an extension receiver or accept nothing
+    if (getterMethod.parameters.size !in 0..1) return null
+
+    val getter = ToplevelKFunction<Any?>(
+        method = getterMethod,
+        isExtension = getterMethod.parameters.size == 1
+    )
+
+    // find the setter method
+    val setterMethod = methods.firstOrNull {
+        it.name == setterName && it.parameters.dropLast(1).map { it.type.kotlin } == parameters
+    }
+
+    // just to make sure; a toplevel property setter, if it has
+    // one, can either accept an extension receiver and a value
+    // or just a value
+    if (setterMethod != null && setterMethod.parameters.size !in 1..2) return null
 
     // find the setter method; if not found, the property is not mutable
-    val setter = methods.firstOrNull {
-        it.name == setterName &&
-                it.parameters.dropLast(1).map { it.type.kotlin } == parameters
-    }?.asToplevelKFunction<Unit>()
+    val setter = if (setterMethod == null) null else ToplevelKFunction<Unit>(
+        method = setterMethod,
+        isExtension = setterMethod.parameters.size == 2
+    )
 
     // the annotations of the field are put on a method with a special name
-    val annotations = methods.firstOrNull {
-        it.name == annotationsName &&
-                it.parameters.map { it.type.kotlin } == parameters
-    }?.annotations.orEmpty().toList()
+    val annotationsMethod = methods.firstOrNull {
+        it.name == annotationsName && it.parameters.map { it.type.kotlin } == parameters
+    }
+
+    val annotations = annotationsMethod?.annotations.orEmpty().toList()
 
     val fields = klass.jvmFields
 
@@ -128,10 +154,12 @@ internal fun lookupToplevelPropertyNoBackingField(klass: KClass<*>, name: String
             null -> ToplevelKProperty0(name, annotations, getter, delegate)
             else -> ToplevelKMutableProperty0(name, annotations, getter, setter, delegate)
         }
+
         1 -> when (setter) {
             null -> ToplevelKProperty1(name, annotations, getter, delegate)
             else -> ToplevelKMutableProperty1(name, annotations, getter, setter, delegate)
         }
+
         else -> null
     }
 }
@@ -152,11 +180,12 @@ private fun unsupported(): Nothing {
     )
 }
 
-internal fun <T> Method.asToplevelKFunction() = ToplevelKFunction<T>(this)
+internal fun <T> Method.asToplevelKFunction(isExtension: Boolean) = ToplevelKFunction<T>(this, isExtension)
 
 /** a custom implementation of [KFunction] for toplevel property accessor */
 internal class ToplevelKFunction<T>(
-    val method: Method
+    val method: Method,
+    val isExtension: Boolean,
 ) : KFunction<T> {
     override val isSuspend get() = false
     override val isFinal get() = true
@@ -182,7 +211,11 @@ internal class ToplevelKFunction<T>(
                 override val isVararg get() = false
                 override val name: String? get() = parameter.name
 
-                override val kind get() = unsupported()
+                override val kind
+                    get() = when {
+                        isExtension && this.index == 0 -> KParameter.Kind.EXTENSION_RECEIVER
+                        else -> KParameter.Kind.VALUE
+                    }
 
                 override val annotations by lazy { parameter.annotations.toList() }
                 override val type: KType by lazy { parameter.type.kotlin.starProjectedType }
