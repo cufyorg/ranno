@@ -8,12 +8,12 @@ version = "1.0.0"
 
 buildscript {
     dependencies {
-        classpath(kotlin("gradle-plugin", version = "1.9.20"))
+        classpath(kotlin("gradle-plugin", version = "2.0.0"))
     }
 }
 
 tasks.wrapper {
-    gradleVersion = "8.2.1"
+    gradleVersion = "8.7"
 }
 
 subprojects {

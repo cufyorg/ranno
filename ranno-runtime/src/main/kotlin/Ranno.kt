@@ -1,3 +1,6 @@
+@file:JvmName("RannoKt")
+@file:JvmMultifileClass
+
 /*
  *	Copyright 2023 cufy.org
  *
@@ -15,26 +18,18 @@
  */
 package org.cufy.ranno
 
-import org.cufy.ranno.internal.enumerateElementsWith
 import org.cufy.ranno.internal.trySetAccessibleAlternative
-import kotlin.reflect.*
+import kotlin.reflect.KAnnotatedElement
+import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotations
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.isSupertypeOf
 import kotlin.reflect.jvm.jvmErasure
 
-//////////////////////////////////////////////////
+// @formatter:off
 
-/**
- * Marks the annotated annotation to be
- * processed by the ranno annotation processor.
- *
- * @author LSafer
- * @since 1.0.0
- */
-@Target(AnnotationTarget.ANNOTATION_CLASS)
-annotation class Enumerable
+//////////////////////////////////////////////////
 
 /**
  * An [@Enumerable][Enumerable] function/property
@@ -45,6 +40,7 @@ annotation class Enumerable
  * @author LSafer
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 @Target(AnnotationTarget.ANNOTATION_CLASS)
 annotation class EnumerableParameters(
     /**
@@ -74,6 +70,7 @@ annotation class EnumerableParameters(
  * @author LSafer
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 @Target(AnnotationTarget.ANNOTATION_CLASS)
 annotation class EnumerableReturnType(
     /**
@@ -97,6 +94,7 @@ annotation class EnumerableReturnType(
  * @author LSafer
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 @Target(AnnotationTarget.ANNOTATION_CLASS)
 annotation class EnumerableSuperType(
     /**
@@ -114,82 +112,6 @@ annotation class EnumerableSuperType(
 //////////////////////////////////////////////////
 
 /**
- * Return all the elements annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedElements: List<KAnnotatedElement>
-    get() = elementsWith(this)
-
-/**
- * Return all the functions annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedFunctions: List<KFunction<*>>
-    get() = functionsWith(this)
-
-/**
- * Return all the properties annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedProperties: List<KProperty<*>>
-    get() = propertiesWith(this)
-
-/**
- * Return all the classes annotated with this annotation.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-val <T : Annotation> KClass<T>.annotatedClasses: List<KClass<*>>
-    get() = classesWith(this)
-
-//////////////////////////////////////////////////
-
-/**
- * Return all the elements annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun elementsWith(annotation: String): List<KAnnotatedElement> {
-    return enumerateElementsWith(annotation)
-}
-
-/**
- * Return all the elements annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
-    return enumerateElementsWith(annotation)
-}
-
-/**
  * Return all the elements annotated with [T].
  *
  * ___Note: Only the elements passed to ranno
@@ -198,67 +120,12 @@ fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> elementsWith(predicate: (T) -> Boolean): List<KAnnotatedElement> {
     return elementsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-/**
- * Return all the elements annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> elementsWith(): Map<KAnnotatedElement, List<T>> {
-    return elementsWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the elements annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun elementsWith(annotation: Annotation): List<KAnnotatedElement> {
-    return elementsWith(annotation::class).filter { annotation in it.annotations }
-}
-
 //////////////////////////////////////////////////
-
-/**
- * Return all the functions annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun functionsWith(annotation: String): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
-}
-
-/**
- * Return all the functions annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
-}
 
 /**
  * Return all the functions annotated with [T].
@@ -269,67 +136,12 @@ fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> functionsWith(predicate: (T) -> Boolean): List<KFunction<*>> {
     return functionsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-/**
- * Return all the functions annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> functionsWith(): Map<KFunction<*>, List<T>> {
-    return functionsWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the functions annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun functionsWith(annotation: Annotation): List<KFunction<*>> {
-    return elementsWith(annotation).filterIsInstance<KFunction<*>>()
-}
-
 //////////////////////////////////////////////////
-
-/**
- * Return all the properties annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun propertiesWith(annotation: String): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
-}
-
-/**
- * Return all the properties annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
-}
 
 /**
  * Return all the properties annotated with [T].
@@ -340,69 +152,14 @@ fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> propertiesWith(predicate: (T) -> Boolean): List<KProperty<*>> {
     return propertiesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
 
-/**
- * Return all the properties annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> propertiesWith(): Map<KProperty<*>, List<T>> {
-    return propertiesWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the properties annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun propertiesWith(annotation: Annotation): List<KProperty<*>> {
-    return elementsWith(annotation).filterIsInstance<KProperty<*>>()
-}
-
 //////////////////////////////////////////////////
 
 /**
- * Return all the classes annotated with [annotation] qualified name.
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun classesWith(annotation: String): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
-}
-
-/**
- * Return all the classes annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
-}
-
-/**
  * Return all the classes annotated with [T].
  *
  * ___Note: Only the elements passed to ranno
@@ -411,38 +168,9 @@ fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> classesWith(predicate: (T) -> Boolean): List<KClass<*>> {
     return classesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
-}
-
-/**
- * Return all the classes annotated with [T].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-inline fun <reified T : Annotation> classesWith(): Map<KClass<*>, List<T>> {
-    return classesWith(T::class)
-        .asSequence()
-        .map { it to it.findAnnotations<T>() }
-        .filter { (_, annotations) -> annotations.isNotEmpty() }
-        .toMap()
-}
-
-/**
- * Return all the classes annotated with [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-fun classesWith(annotation: Annotation): List<KClass<*>> {
-    return elementsWith(annotation).filterIsInstance<KClass<*>>()
 }
 
 //////////////////////////////////////////////////
@@ -467,6 +195,7 @@ fun classesWith(annotation: Annotation): List<KClass<*>> {
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runWith(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -497,6 +226,7 @@ fun runWith(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -527,6 +257,7 @@ fun runWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicat
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> runWith(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWith(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
 }
@@ -550,6 +281,7 @@ inline fun <reified T : Annotation> runWith(vararg arguments: Any?, noinline pre
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWith(annotation::class, *arguments) { annotation in it.annotations }
 }
@@ -571,6 +303,7 @@ fun runWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun runWithSuspend(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -595,6 +328,7 @@ suspend fun runWithSuspend(annotation: String, vararg arguments: Any?, predicate
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun runWithSuspend(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -619,6 +353,7 @@ suspend fun runWithSuspend(annotation: KClass<out Annotation>, vararg arguments:
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend inline fun <reified T : Annotation> runWithSuspend(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWithSuspend(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
 }
@@ -637,6 +372,7 @@ suspend inline fun <reified T : Annotation> runWithSuspend(vararg arguments: Any
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun runWithSuspend(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWithSuspend(annotation::class, *arguments) { annotation in it.annotations }
 }
@@ -663,6 +399,7 @@ suspend fun runWithSuspend(annotation: Annotation, vararg arguments: Any?): List
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun Any.applyWith(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWith(annotation, this, *arguments, predicate = predicate)
 }
@@ -687,6 +424,7 @@ fun Any.applyWith(annotation: String, vararg arguments: Any?, predicate: (KFunct
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun Any.applyWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWith(annotation, this, *arguments, predicate = predicate)
 }
@@ -711,6 +449,7 @@ fun Any.applyWith(annotation: KClass<out Annotation>, vararg arguments: Any?, pr
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWith<T>(this, *arguments, predicate = predicate)
 }
@@ -734,6 +473,7 @@ inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinli
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun Any.applyWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWith(annotation, this, *arguments)
 }
@@ -755,6 +495,7 @@ fun Any.applyWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun Any.applyWithSuspend(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWithSuspend(annotation, this, *arguments, predicate = predicate)
 }
@@ -774,6 +515,7 @@ suspend fun Any.applyWithSuspend(annotation: String, vararg arguments: Any?, pre
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun Any.applyWithSuspend(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWithSuspend(annotation, this, *arguments, predicate = predicate)
 }
@@ -793,6 +535,7 @@ suspend fun Any.applyWithSuspend(annotation: KClass<out Annotation>, vararg argu
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend inline fun <reified T : Annotation> Any.applyWithSuspend(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWithSuspend<T>(this, *arguments, predicate = predicate)
 }
@@ -811,37 +554,12 @@ suspend inline fun <reified T : Annotation> Any.applyWithSuspend(vararg argument
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun Any.applyWithSuspend(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWithSuspend(annotation, this, *arguments)
 }
 
 //////////////////////////////////////////////////
-
-/**
- * The default enumeration annotation.
- *
- * For structures without custom annotations.
- *
- * @author LSafer
- * @since 1.0.0
- */
-@Enumerable
-@Repeatable
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class Enumerated(
-    /**
-     * The enumeration qualifier.
-     *
-     * @since 1.0.0
-     */
-    val name: String = "",
-    /**
-     * Used to reduce conflict between multiple modules.
-     *
-     * @since 1.0.0
-     */
-    val domain: String = "",
-)
 
 /**
  * The default configuration enumeration annotation.
@@ -875,6 +593,7 @@ annotation class Enumerated(
 @Repeatable
 @EnumerableReturnType(Unit::class)
 @Target(AnnotationTarget.FUNCTION)
+@Deprecated(DEPRECATION_MSG)
 annotation class EnumeratedScript(
     /**
      * The enumeration qualifier.
@@ -890,18 +609,6 @@ annotation class EnumeratedScript(
     val domain: String = "",
 )
 
-/**
- * Adds compile time restriction to element usage
- * to be only used via enumeration functions and
- * not directly.
- *
- * @author LSafer
- * @since 1.0.0
- */
-@RequiresOptIn("This component is intended to be used via enumeration and not directly.", RequiresOptIn.Level.ERROR)
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class EnumerationOnly
-
 //////////////////////////////////////////////////
 
 /**
@@ -913,6 +620,7 @@ annotation class EnumerationOnly
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 fun KFunction<*>.canCallWith(vararg arguments: Any?): Boolean {
     return !isSuspend && canCallWithSuspend(*arguments)
 }
@@ -927,6 +635,7 @@ fun KFunction<*>.canCallWith(vararg arguments: Any?): Boolean {
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 fun KFunction<*>.callWith(vararg arguments: Any?): Any? {
     trySetAccessibleAlternative()
 
@@ -945,6 +654,7 @@ fun KFunction<*>.callWith(vararg arguments: Any?): Any? {
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 fun KFunction<*>.canCallWithSuspend(vararg arguments: Any?): Boolean {
     if (parameters.size > arguments.size)
         return false
@@ -970,6 +680,7 @@ fun KFunction<*>.canCallWithSuspend(vararg arguments: Any?): Boolean {
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 suspend fun KFunction<*>.callWithSuspend(vararg arguments: Any?): Any? {
     trySetAccessibleAlternative()
 
@@ -979,35 +690,5 @@ suspend fun KFunction<*>.callWithSuspend(vararg arguments: Any?): Any? {
         callSuspend(*arguments.take(parameters.size).toTypedArray())
 }
 
-/**
- * Return true if this function can be call with the given [parameters]
- * and returns instance of [returnType].
- *
- * @param suspend pass true to match suspend functions
- */
-fun KFunction<*>.matchSignature(returnType: KType, vararg parameters: KType, suspend: Boolean = false): Boolean {
-    return matchSignature(returnType, parameters.asList(), suspend)
-}
-
-/**
- * Return true if this function can be call with the given [parameters]
- * and returns instance of [returnType].
- *
- * @param suspend pass true to match suspend functions
- */
-fun KFunction<*>.matchSignature(returnType: KType, parameters: List<KType>, suspend: Boolean = false): Boolean {
-    if (!suspend && this.isSuspend)
-        return false
-
-    if (!this.returnType.isSubtypeOf(returnType))
-        return false
-
-    if (this.parameters.size != parameters.size)
-        return false
-
-    for (i in this.parameters.indices)
-        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
-            return false
-
-    return true
-}
+private const val DEPRECATION_MSG = "This API was unnecessarily specific thus it was deprecated." +
+        "A more manual approach should be used in applications instead."

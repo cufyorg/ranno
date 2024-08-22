@@ -18,8 +18,6 @@ package org.cufy.ranno.internal
 import org.cufy.ranno.Enumerable
 import java.util.logging.Logger
 import kotlin.reflect.KAnnotatedElement
-import kotlin.reflect.KClass
-import kotlin.reflect.full.hasAnnotation
 
 private val logger = Logger.getLogger("org.cufy.ranno")
 
@@ -48,22 +46,4 @@ internal fun enumerateElementsWith(annotation: String): List<KAnnotatedElement> 
             }
             .toList()
     }
-}
-
-/**
- * Return all the elements annotated with the given [annotation].
- *
- * ___Note: Only the elements passed to ranno
- * annotation processor will be returned by this
- * function.___
- *
- * @since 1.0.0
- */
-internal fun enumerateElementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
-    require(annotation.hasAnnotation<Enumerable>()) {
-        "Annotation must be annotated with @Enumerable for annotatedElements() to work"
-    }
-    val qualifiedName = annotation.qualifiedName
-            ?: error("Cannot get qualified name of $annotation")
-    return enumerateElementsWith(qualifiedName)
 }

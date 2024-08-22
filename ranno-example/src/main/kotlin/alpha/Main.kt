@@ -1,4 +1,4 @@
-package org.cufy.ranno.example
+package org.cufy.ranno.example.alpha
 
 import kotlinx.coroutines.runBlocking
 import org.cufy.ranno.Enumerable
