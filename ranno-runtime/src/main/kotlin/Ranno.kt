@@ -27,16 +27,6 @@ import kotlin.reflect.jvm.jvmErasure
 //////////////////////////////////////////////////
 
 /**
- * Marks the annotated annotation to be
- * processed by the ranno annotation processor.
- *
- * @author LSafer
- * @since 1.0.0
- */
-@Target(AnnotationTarget.ANNOTATION_CLASS)
-annotation class Enumerable
-
-/**
  * An [@Enumerable][Enumerable] function/property
  * validator that ensures the annotated
  * function/property has a specific count,
@@ -841,32 +831,6 @@ suspend fun Any.applyWithSuspend(annotation: Annotation, vararg arguments: Any?)
 //////////////////////////////////////////////////
 
 /**
- * The default enumeration annotation.
- *
- * For structures without custom annotations.
- *
- * @author LSafer
- * @since 1.0.0
- */
-@Enumerable
-@Repeatable
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class Enumerated(
-    /**
-     * The enumeration qualifier.
-     *
-     * @since 1.0.0
-     */
-    val name: String = "",
-    /**
-     * Used to reduce conflict between multiple modules.
-     *
-     * @since 1.0.0
-     */
-    val domain: String = "",
-)
-
-/**
  * The default configuration enumeration annotation.
  *
  * For structures without custom annotations.
@@ -913,18 +877,6 @@ annotation class EnumeratedScript(
      */
     val domain: String = "",
 )
-
-/**
- * Adds compile time restriction to element usage
- * to be only used via enumeration functions and
- * not directly.
- *
- * @author LSafer
- * @since 1.0.0
- */
-@RequiresOptIn("This component is intended to be used via enumeration and not directly.", RequiresOptIn.Level.ERROR)
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.CLASS)
-annotation class EnumerationOnly
 
 //////////////////////////////////////////////////
 
