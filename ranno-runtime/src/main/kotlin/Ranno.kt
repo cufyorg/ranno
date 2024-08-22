@@ -45,6 +45,7 @@ annotation class Enumerable
  * @author LSafer
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 @Target(AnnotationTarget.ANNOTATION_CLASS)
 annotation class EnumerableParameters(
     /**
@@ -74,6 +75,7 @@ annotation class EnumerableParameters(
  * @author LSafer
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 @Target(AnnotationTarget.ANNOTATION_CLASS)
 annotation class EnumerableReturnType(
     /**
@@ -97,6 +99,7 @@ annotation class EnumerableReturnType(
  * @author LSafer
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 @Target(AnnotationTarget.ANNOTATION_CLASS)
 annotation class EnumerableSuperType(
     /**
@@ -198,6 +201,7 @@ fun elementsWith(annotation: KClass<out Annotation>): List<KAnnotatedElement> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> elementsWith(predicate: (T) -> Boolean): List<KAnnotatedElement> {
     return elementsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
@@ -269,6 +273,7 @@ fun functionsWith(annotation: KClass<out Annotation>): List<KFunction<*>> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> functionsWith(predicate: (T) -> Boolean): List<KFunction<*>> {
     return functionsWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
@@ -340,6 +345,7 @@ fun propertiesWith(annotation: KClass<out Annotation>): List<KProperty<*>> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> propertiesWith(predicate: (T) -> Boolean): List<KProperty<*>> {
     return propertiesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
@@ -411,6 +417,7 @@ fun classesWith(annotation: KClass<out Annotation>): List<KClass<*>> {
  *
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> classesWith(predicate: (T) -> Boolean): List<KClass<*>> {
     return classesWith(T::class).filter { it.findAnnotations<T>().any(predicate) }
 }
@@ -467,6 +474,7 @@ fun classesWith(annotation: Annotation): List<KClass<*>> {
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runWith(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -497,6 +505,7 @@ fun runWith(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -527,6 +536,7 @@ fun runWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicat
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> runWith(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWith(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
 }
@@ -550,6 +560,7 @@ inline fun <reified T : Annotation> runWith(vararg arguments: Any?, noinline pre
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun runWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWith(annotation::class, *arguments) { annotation in it.annotations }
 }
@@ -571,6 +582,7 @@ fun runWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun runWithSuspend(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -595,6 +607,7 @@ suspend fun runWithSuspend(annotation: String, vararg arguments: Any?, predicate
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun runWithSuspend(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     @OptIn(ExperimentalRannoApi::class)
     return elementsWith(annotation)
@@ -619,6 +632,7 @@ suspend fun runWithSuspend(annotation: KClass<out Annotation>, vararg arguments:
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend inline fun <reified T : Annotation> runWithSuspend(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWithSuspend(T::class, *arguments) { it.findAnnotations<T>().any(predicate) }
 }
@@ -637,6 +651,7 @@ suspend inline fun <reified T : Annotation> runWithSuspend(vararg arguments: Any
  * @param arguments the arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun runWithSuspend(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWithSuspend(annotation::class, *arguments) { annotation in it.annotations }
 }
@@ -663,6 +678,7 @@ suspend fun runWithSuspend(annotation: Annotation, vararg arguments: Any?): List
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun Any.applyWith(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWith(annotation, this, *arguments, predicate = predicate)
 }
@@ -687,6 +703,7 @@ fun Any.applyWith(annotation: String, vararg arguments: Any?, predicate: (KFunct
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun Any.applyWith(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWith(annotation, this, *arguments, predicate = predicate)
 }
@@ -711,6 +728,7 @@ fun Any.applyWith(annotation: KClass<out Annotation>, vararg arguments: Any?, pr
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWith<T>(this, *arguments, predicate = predicate)
 }
@@ -734,6 +752,7 @@ inline fun <reified T : Annotation> Any.applyWith(vararg arguments: Any?, noinli
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 fun Any.applyWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWith(annotation, this, *arguments)
 }
@@ -755,6 +774,7 @@ fun Any.applyWith(annotation: Annotation, vararg arguments: Any?): List<Any?> {
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun Any.applyWithSuspend(annotation: String, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWithSuspend(annotation, this, *arguments, predicate = predicate)
 }
@@ -774,6 +794,7 @@ suspend fun Any.applyWithSuspend(annotation: String, vararg arguments: Any?, pre
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun Any.applyWithSuspend(annotation: KClass<out Annotation>, vararg arguments: Any?, predicate: (KFunction<*>) -> Boolean = { true }): List<Any?> {
     return runWithSuspend(annotation, this, *arguments, predicate = predicate)
 }
@@ -793,6 +814,7 @@ suspend fun Any.applyWithSuspend(annotation: KClass<out Annotation>, vararg argu
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend inline fun <reified T : Annotation> Any.applyWithSuspend(vararg arguments: Any?, noinline predicate: (T) -> Boolean = { true }): List<Any?> {
     return runWithSuspend<T>(this, *arguments, predicate = predicate)
 }
@@ -811,6 +833,7 @@ suspend inline fun <reified T : Annotation> Any.applyWithSuspend(vararg argument
  * @param arguments additional arguments.
  * @since 1.0.0
  */
+@Deprecated(DEPRECATION_MSG)
 suspend fun Any.applyWithSuspend(annotation: Annotation, vararg arguments: Any?): List<Any?> {
     return runWithSuspend(annotation, this, *arguments)
 }
@@ -875,6 +898,7 @@ annotation class Enumerated(
 @Repeatable
 @EnumerableReturnType(Unit::class)
 @Target(AnnotationTarget.FUNCTION)
+@Deprecated(DEPRECATION_MSG)
 annotation class EnumeratedScript(
     /**
      * The enumeration qualifier.
@@ -913,6 +937,7 @@ annotation class EnumerationOnly
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 fun KFunction<*>.canCallWith(vararg arguments: Any?): Boolean {
     return !isSuspend && canCallWithSuspend(*arguments)
 }
@@ -927,6 +952,7 @@ fun KFunction<*>.canCallWith(vararg arguments: Any?): Boolean {
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 fun KFunction<*>.callWith(vararg arguments: Any?): Any? {
     trySetAccessibleAlternative()
 
@@ -945,6 +971,7 @@ fun KFunction<*>.callWith(vararg arguments: Any?): Any? {
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 fun KFunction<*>.canCallWithSuspend(vararg arguments: Any?): Boolean {
     if (parameters.size > arguments.size)
         return false
@@ -970,6 +997,7 @@ fun KFunction<*>.canCallWithSuspend(vararg arguments: Any?): Boolean {
  * @since 1.0.0
  */
 @ExperimentalRannoApi
+@Deprecated(DEPRECATION_MSG)
 suspend fun KFunction<*>.callWithSuspend(vararg arguments: Any?): Any? {
     trySetAccessibleAlternative()
 
@@ -1011,3 +1039,6 @@ fun KFunction<*>.matchSignature(returnType: KType, parameters: List<KType>, susp
 
     return true
 }
+
+private const val DEPRECATION_MSG = "This API was unnecessarily specific thus it was deprecated." +
+        "A more manual approach should be used in applications instead."
