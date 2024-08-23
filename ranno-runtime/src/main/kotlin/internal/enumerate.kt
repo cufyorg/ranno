@@ -29,9 +29,9 @@ internal fun enumerateElementsWith(annotation: String): List<KAnnotatedElement> 
     return elementCache.getOrPut(annotation) {
         listResourceLocations("$ANNOTATION_QN/$annotation")
             .asSequence() // -> list of directories uris
-            .flatMap { it.listUris() } // -> list of files uris
+            .flatMap { it.listUrisOrEmpty() } // -> list of files uris
             .distinct()
-            .flatMap { it.readLines() } // -> list of lines
+            .flatMap { it.readLinesOrEmpty() } // -> list of lines
             .mapNotNull {
                 lookupElement(it) ?: run {
                     logger.warning { "Element not found at runtime: $it" }
