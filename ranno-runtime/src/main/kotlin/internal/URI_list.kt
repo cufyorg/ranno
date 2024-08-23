@@ -50,7 +50,7 @@ private fun URI.jar_listOrEmpty(): List<String> {
 
     return resourceFile.use {
         // stream all the files in the jar (java streams API)
-        it.stream()
+        it.stream().asSequence()
             // name length check is a lighter way for excluding the folder itself from the results
             .filter { it.name.length > folder.length && it.name.startsWith(folder) }
             // transform, stripping the folder name to end up with just the last segment of the path
