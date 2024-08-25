@@ -23,6 +23,8 @@ import kotlin.reflect.KType
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.isSupertypeOf
 
+//////////////////////////////////////////////////
+
 /**
  * Return true if this function can be call with the given [parameters]
  * and returns instance of [returnType].
@@ -55,3 +57,65 @@ fun KFunction<*>.matchSignature(returnType: KType, parameters: List<KType>, susp
 
     return true
 }
+
+//////////////////////////////////////////////////
+
+/**
+ * Return true if this function can be casted to a lambda with the given [parameters]
+ * and returns instance of [returnType].
+ */
+fun KFunction<*>.canCast(returnType: KType, vararg parameters: KType): Boolean {
+    return canCast(returnType, parameters.asList())
+}
+
+/**
+ * Return true if this function can be casted to a lambda with the given [parameters]
+ * and returns instance of [returnType].
+ */
+fun KFunction<*>.canCast(returnType: KType, parameters: List<KType>): Boolean {
+    if (this.isSuspend)
+        return false
+
+    if (!this.returnType.isSubtypeOf(returnType))
+        return false
+
+    if (this.parameters.size != parameters.size)
+        return false
+
+    for (i in this.parameters.indices)
+        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
+            return false
+
+    return true
+}
+
+/**
+ * Return true if this function can be casted to a suspend lambda with the given [parameters]
+ * and returns instance of [returnType].
+ */
+fun KFunction<*>.canCastSuspend(returnType: KType, vararg parameters: KType): Boolean {
+    return canCastSuspend(returnType, parameters.asList())
+}
+
+/**
+ * Return true if this function can be casted to a suspend lambda with the given [parameters]
+ * and returns instance of [returnType].
+ */
+fun KFunction<*>.canCastSuspend(returnType: KType, parameters: List<KType>): Boolean {
+    if (!this.isSuspend)
+        return false
+
+    if (!this.returnType.isSubtypeOf(returnType))
+        return false
+
+    if (this.parameters.size != parameters.size)
+        return false
+
+    for (i in this.parameters.indices)
+        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
+            return false
+
+    return true
+}
+
+//////////////////////////////////////////////////
