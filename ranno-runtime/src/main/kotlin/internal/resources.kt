@@ -17,8 +17,9 @@ package org.cufy.ranno.internal
 
 import java.net.URI
 import java.nio.file.FileSystem
-import java.nio.file.FileSystemNotFoundException
 import java.nio.file.FileSystems
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /*
 Notes on java resources:
@@ -39,19 +40,25 @@ internal fun URI.readLinesOrEmpty(): Sequence<String> {
     }
 }
 
+// We know this function won't be used by anyone but us,
+// and we know we will just read and not write. Thus, no problems here.
 internal fun <T> URI.useFilesystem(block: (FileSystem) -> T): T {
-    return try {
-        // if a filesystem exists, use it but don't close it (It's not ours)
-        val filesystem = FileSystems.getFileSystem(this)
-        block(filesystem)
-    } catch (_: FileSystemNotFoundException) {
-        // if not, create a temporary one and close right after usage.
-        val filesystem = FileSystems.newFileSystem(this, mutableMapOf<String?, Any?>())
-        filesystem.use(block)
-    }
+    val asPath = uriToPath(this)
+    val filesystem = FileSystems.newFileSystem(asPath, null as ClassLoader?)
+    return filesystem.use(block)
 }
 
 internal fun createSubUri(parent: URI, child: String): URI {
     val parentString = parent.toString().removeSuffix("/")
     return URI.create("$parentString/$child")
+}
+
+private fun uriToPath(uri: URI): Path {
+    // taken from some random jdk and auto transformed to kotlin by intellij
+    var spec = uri.rawSchemeSpecificPart
+    val sep = spec.indexOf("!/")
+    if (sep != -1) {
+        spec = spec.substring(0, sep)
+    }
+    return Paths.get(URI(spec)).toAbsolutePath()
 }
