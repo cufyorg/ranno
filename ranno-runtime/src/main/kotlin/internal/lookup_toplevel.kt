@@ -93,7 +93,10 @@ internal fun lookupToplevelPropertyNoBackingField(
     name: String,
     parameters: List<KClass<*>>
 ): KProperty<*>? {
-    val getterName = "get${name.replaceFirstChar { it.uppercase() }}"
+    val getterName = when {
+        name.length > 2 && name[0] == 'i' && name[1] == 's' && !name[2].isLowerCase() -> name
+        else -> "get${name.replaceFirstChar { it.uppercase() }}"
+    }
     val setterName = "set${name.replaceFirstChar { it.uppercase() }}"
     val annotationsName = "$getterName\$annotations"
     val delegateName = "${name.replaceFirstChar { it.uppercase() }}\$delegate"
