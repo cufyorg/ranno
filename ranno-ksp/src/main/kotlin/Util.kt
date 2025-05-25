@@ -16,6 +16,9 @@
 package org.cufy.ranno.ksp
 
 import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.impl.symbol.kotlin.KSFunctionDeclarationImpl
+import com.google.devtools.ksp.impl.symbol.kotlin.KSPropertyDeclarationImpl
+import com.google.devtools.ksp.impl.symbol.kotlin.KSTypeImpl
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
 import kotlin.reflect.KClass
@@ -56,30 +59,40 @@ val KSAnnotated.representableName: String
 
 /** This does not include suspend continuation argument */
 val KSFunctionDeclaration.jvmParameters: List<KSType>
-    get() {
-        val receivers = listOfNotNull(
-            parentDeclaration
-                ?.let { it as? KSClassDeclaration }
-                ?.asStarProjectedType(),
-            extensionReceiver
-                ?.resolve()
-        )
-        val parameters = parameters.map {
-            it.type.resolve()
-        }
+    get() = buildList {
+        // parent
+        parentDeclaration
+            ?.let { it as? KSClassDeclaration }
+            ?.asStarProjectedType()
+            ?.let { add(it) }
 
-        return receivers + parameters
+        // context parameters
+        addAll(getContextParameters())
+
+        // extension receiver
+        extensionReceiver
+            ?.resolve()
+            ?.let { add(it) }
+
+        // value parameters
+        addAll(parameters.map { it.type.resolve() })
     }
 
 val KSPropertyDeclaration.jvmParameters: List<KSType>
-    get() {
-        return listOfNotNull(
-            parentDeclaration
-                ?.let { it as? KSClassDeclaration }
-                ?.asStarProjectedType(),
-            extensionReceiver
-                ?.resolve()
-        )
+    get() = buildList {
+        // parent
+        parentDeclaration
+            ?.let { it as? KSClassDeclaration }
+            ?.asStarProjectedType()
+            ?.let { add(it) }
+
+        // context parameters
+        addAll(getContextParameters())
+
+        // extension receiver
+        extensionReceiver
+            ?.resolve()
+            ?.let { add(it) }
     }
 
 @OptIn(KspExperimental::class)
@@ -97,5 +110,71 @@ private fun KSTypeAlias.findActualType(): KSClassDeclaration {
         resolvedType.findActualType()
     } else {
         resolvedType as KSClassDeclaration
+    }
+}
+
+@Suppress("UNCHECKED_CAST", "JAVA_CLASS_ON_COMPANION")
+@OptIn(
+    org.jetbrains.kotlin.analysis.api.KaExperimentalApi::class,
+    ksp.org.jetbrains.kotlin.analysis.api.KaExperimentalApi::class,
+    org.jetbrains.kotlin.analysis.api.KaImplementationDetail::class,
+    ksp.org.jetbrains.kotlin.analysis.api.KaImplementationDetail::class
+)
+fun KSFunctionDeclaration.getContextParameters(): List<KSType> {
+    try {
+        if (this !is KSFunctionDeclarationImpl) return emptyList()
+        val ktFunctionSymbol = this.javaClass
+            .getDeclaredField("ktFunctionSymbol")
+            .also { it.isAccessible = true }
+            .get(this)
+        if (ktFunctionSymbol is org.jetbrains.kotlin.analysis.api.symbols.markers.KaContextParameterOwnerSymbol)
+            return ktFunctionSymbol.contextParameters.map {
+                KSTypeImpl.javaClass
+                    .getMethod("getCached", org.jetbrains.kotlin.analysis.api.types.KaType::class.java)
+                    .invoke(KSTypeImpl, it.returnType) as KSType
+            }
+
+        if (ktFunctionSymbol is ksp.org.jetbrains.kotlin.analysis.api.symbols.markers.KaContextParameterOwnerSymbol)
+            return ktFunctionSymbol.contextParameters.map {
+                KSTypeImpl.javaClass
+                    .getMethod("getCached", ksp.org.jetbrains.kotlin.analysis.api.types.KaType::class.java)
+                    .invoke(KSTypeImpl, it.returnType) as KSType
+            }
+        return emptyList()
+    } catch (_: Throwable) {
+        return emptyList()
+    }
+}
+
+@Suppress("UNCHECKED_CAST", "JAVA_CLASS_ON_COMPANION")
+@OptIn(
+    org.jetbrains.kotlin.analysis.api.KaExperimentalApi::class,
+    ksp.org.jetbrains.kotlin.analysis.api.KaExperimentalApi::class,
+    org.jetbrains.kotlin.analysis.api.KaImplementationDetail::class,
+    ksp.org.jetbrains.kotlin.analysis.api.KaImplementationDetail::class
+)
+private fun KSPropertyDeclaration.getContextParameters(): List<KSType> {
+    try {
+        if (this !is KSPropertyDeclarationImpl) return emptyList()
+        val ktPropertySymbol = this.javaClass
+            .getDeclaredField("ktPropertySymbol")
+            .also { it.isAccessible = true }
+            .get(this)
+        if (ktPropertySymbol is org.jetbrains.kotlin.analysis.api.symbols.markers.KaContextParameterOwnerSymbol)
+            return ktPropertySymbol.contextParameters.map {
+                KSTypeImpl.javaClass
+                    .getMethod("getCached", org.jetbrains.kotlin.analysis.api.types.KaType::class.java)
+                    .invoke(KSTypeImpl, it.returnType) as KSType
+            }
+
+        if (ktPropertySymbol is ksp.org.jetbrains.kotlin.analysis.api.symbols.markers.KaContextParameterOwnerSymbol)
+            return ktPropertySymbol.contextParameters.map {
+                KSTypeImpl.javaClass
+                    .getMethod("getCached", ksp.org.jetbrains.kotlin.analysis.api.types.KaType::class.java)
+                    .invoke(KSTypeImpl, it.returnType) as KSType
+            }
+        return emptyList()
+    } catch (_: Throwable) {
+        return emptyList()
     }
 }

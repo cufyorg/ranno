@@ -4,12 +4,7 @@ import kotlinx.coroutines.runBlocking
 import org.cufy.ranno.Enumerable
 import org.cufy.ranno.elementsWith
 import kotlin.reflect.KCallable
-import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty2
 import kotlin.reflect.full.callSuspend
-import kotlin.reflect.full.functions
-import kotlin.reflect.full.memberExtensionProperties
-import kotlin.reflect.jvm.jvmErasure
 
 const val TOPLEVEL_SUSPEND_FUNCTION = "Toplevel Suspend Function"
 
@@ -33,7 +28,25 @@ const val MEMBER_EXTENSION_PROPERTY = "Member Extension Property"
 const val MEMBER_DELEGATED_PROPERTY = "Member Delegated Property"
 const val MEMBER_DELEGATED_EXTENSION_PROPERTY = "Member Delegated Extension Property"
 
-val EXPECTED = listOf(
+val EXPECTED_NAMES = listOf(
+    "toplevelSuspendFunction",
+    "toplevelFunction",
+    "toplevelExtensionFunction",
+    "toplevelProperty",
+    "toplevelPropertyNoField",
+    "toplevelExtensionProperty",
+    "toplevelDelegatedProperty",
+    "toplevelDelegatedExtensionProperty",
+    "memberSuspendFunction",
+    "memberFunction",
+    "memberExtensionFunction",
+    "memberProperty",
+    "memberPropertyNoField",
+    "memberExtensionProperty",
+    "memberDelegatedProperty",
+    "memberDelegatedExtensionProperty",
+)
+val EXPECTED_VALUES = listOf(
     TOPLEVEL_SUSPEND_FUNCTION,
     TOPLEVEL_FUNCTION,
     TOPLEVEL_EXTENSION_FUNCTION,
@@ -125,45 +138,11 @@ class Foo {
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-val Foo_Int_memberExtensionFunction = Foo::class.functions.first {
-    it.name == "memberExtensionFunction"
-} as KFunction<String>
-
-@Suppress("UNCHECKED_CAST")
-val Foo_Int_memberExtensionProperty = Foo::class.memberExtensionProperties.first {
-    it.name == "memberExtensionProperty"
-} as KProperty2<Foo, Int, String>
-
-@Suppress("UNCHECKED_CAST")
-val Foo_Int_memberDelegatedExtensionProperty = Foo::class.memberExtensionProperties.first {
-    it.name == "memberDelegatedExtensionProperty"
-} as KProperty2<Foo, Int, String>
-
-val EXPECTED_TOPLEVEL_ELEMENTS: List<KCallable<String>> = listOf(
-    ::toplevelSuspendFunction,
-    ::toplevelFunction,
-    Int::toplevelExtensionFunction,
-    ::toplevelProperty,
-    ::toplevelPropertyNoField,
-    Int::toplevelExtensionProperty,
-    ::toplevelDelegatedProperty,
-    Int::toplevelDelegatedExtensionProperty,
-    Foo::memberSuspendFunction,
-    Foo::memberFunction,
-    Foo_Int_memberExtensionFunction, // Foo::Int::memberExtensionFunction
-    Foo::memberProperty,
-    Foo::memberPropertyNoField,
-    Foo_Int_memberExtensionProperty, // Foo::Int::memberExtensionProperty
-    Foo::memberDelegatedProperty,
-    Foo_Int_memberDelegatedExtensionProperty // Foo::Int::memberDelegatedExtensionProperty
-)
-
 fun main() = runBlocking {
     val elements = elementsWith<MyCustomAnnotation>()
-        .keys.filterIsInstance<KCallable<*>>()
+        .keys.filterIsInstance<KCallable<String>>()
 
-    EXPECTED_TOPLEVEL_ELEMENTS.forEachIndexed { i, it ->
+    EXPECTED_NAMES.forEachIndexed { i, name ->
         print(i.toString().padStart(2, '0'))
 
         // name matching is enough;
@@ -171,35 +150,40 @@ fun main() = runBlocking {
         //  and toplevel reflection instances implemented by ranno
 
         when {
-            elements.any { e -> e.name == it.name } ->
-                println(" \u001B[32mFOUND\u001B[0m $it")
+            elements.any { e -> e.name == name } ->
+                println(" \u001B[32mFOUND\u001B[0m $name")
 
             else ->
-                println(" \u001B[31mMISSING\u001B[0m $it")
+                println(" \u001B[31mMISSING\u001B[0m $name")
         }
     }
 
-    val outputs = elements.mapNotNull { element ->
-        when {
-            element.parameters.isEmpty() ->
-                element.callSuspend()
-
-            element.parameters.size == 2 ->
-                element.callSuspend(Foo(), 0)
-
-            element.parameters[0].type.jvmErasure == Int::class ->
-                element.callSuspend(0)
-
-            element.parameters[0].type.jvmErasure == Foo::class ->
-                element.callSuspend(Foo())
-
-            else -> error("!")
+    val thisRef = Foo()
+    val outputs = elements.map { element ->
+        when (element.name) {
+            "toplevelSuspendFunction" -> element.callSuspend()
+            "toplevelFunction" -> element.call()
+            "toplevelExtensionFunction" -> element.call(0)
+            "toplevelProperty" -> element.call()
+            "toplevelPropertyNoField" -> element.call()
+            "toplevelExtensionProperty" -> element.call(0)
+            "toplevelDelegatedProperty" -> element.call()
+            "toplevelDelegatedExtensionProperty" -> element.call(0)
+            "memberSuspendFunction" -> element.callSuspend(thisRef)
+            "memberFunction" -> element.call(thisRef)
+            "memberExtensionFunction" -> element.call(thisRef, 0)
+            "memberProperty" -> element.call(thisRef)
+            "memberPropertyNoField" -> element.call(thisRef)
+            "memberExtensionProperty" -> element.call(thisRef, 0)
+            "memberDelegatedProperty" -> element.call(thisRef)
+            "memberDelegatedExtensionProperty" -> element.call(thisRef, 0)
+            else -> error("Not supported: ${element.name}")
         }
     }
 
     println()
 
-    EXPECTED.forEachIndexed { i, it ->
+    EXPECTED_VALUES.forEachIndexed { i, it ->
         print(i.toString().padStart(2, '0'))
 
         when (it) {

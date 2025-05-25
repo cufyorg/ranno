@@ -143,26 +143,29 @@ private fun ProcessingContext.produceSignature(element: KSAnnotated): String? {
             val className = element.qualifiedName?.asString()
             "class $className"
         }
+
         is KSFunctionDeclaration -> {
             val className = resolver.getOwnerJvmClassName(element)
             val name = element.simpleName.asString()
-            val parameters = element.jvmParameters.map {
-                resolver.mapToActualJvmSignature(it.declaration)
-            }.joinToString("")
+            val parameters = element.jvmParameters.joinToString("") {
+                resolver.mapToActualJvmSignature(it.declaration).orEmpty() // fixme report failure when failing to produce parameter signature
+            }
 
             if (Modifier.SUSPEND in element.modifiers)
                 "suspend-function $className $name $parameters"
             else
                 "function $className $name $parameters"
         }
+
         is KSPropertyDeclaration -> {
             val className = resolver.getOwnerJvmClassName(element)
             val name = element.simpleName.asString()
-            val parameters = element.jvmParameters.map {
-                resolver.mapToActualJvmSignature(it.declaration)
-            }.joinToString("")
+            val parameters = element.jvmParameters.joinToString("") {
+                resolver.mapToActualJvmSignature(it.declaration).orEmpty() // fixme report failure when failing to produce parameter signature
+            }
             "property $className $name $parameters"
         }
+
         else -> {
             environment.logger.error("Cannot produce signature for element", element)
             null

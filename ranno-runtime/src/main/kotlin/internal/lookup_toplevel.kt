@@ -111,6 +111,8 @@ internal fun lookupToplevelPropertyNoBackingField(
     // if getter method not found, the property does not exist
     getterMethod ?: return null
 
+    if (!isStatic(getterMethod.modifiers)) return null
+
     // just to make sure; a toplevel property getter can
     // either accept an extension receiver or accept nothing
     if (getterMethod.parameters.size !in 0..1) return null
