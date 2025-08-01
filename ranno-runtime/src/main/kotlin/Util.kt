@@ -18,10 +18,13 @@
  */
 package org.cufy.ranno
 
+import org.cufy.ranno.internal.isContextParametersReflected
+import org.cufy.ranno.internal.jvmErasedTypesOfContextParameterTypesOf
 import org.cufy.ranno.internal.matchParameters
+import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
-import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.*
 
 //////////////////////////////////////////////////
 
@@ -95,6 +98,41 @@ fun KFunction<*>.canCastSuspend(returnType: KType, parameters: List<KType>): Boo
         return false
 
     return matchParameters(this, parameters)
+}
+
+//////////////////////////////////////////////////
+
+fun <T> KFunction<T>.callUnwrap(vararg args: Any?): T {
+    try {
+        return this.call(*args)
+    } catch (e: InvocationTargetException) {
+        throw e.cause ?: e
+    }
+}
+
+suspend fun <T> KFunction<T>.callSuspendUnwrap(vararg args: Any?): T {
+    try {
+        return this.callSuspend(*args)
+    } catch (e: InvocationTargetException) {
+        throw e.cause ?: e
+    }
+}
+
+//////////////////////////////////////////////////
+
+fun KFunction<*>.collectSignature(): List<KType> {
+    if (!isContextParametersReflected(this)) return buildList {
+        instanceParameter?.let { add(it.type) }
+        jvmErasedTypesOfContextParameterTypesOf(this@collectSignature)
+            .forEach { add(it) }
+        extensionReceiverParameter?.let { add(it.type) }
+        valueParameters.forEach { add(it.type) }
+        add(returnType)
+    }
+    return buildList {
+        parameters.forEach { add(it.type) }
+        add(returnType)
+    }
 }
 
 //////////////////////////////////////////////////
