@@ -18,10 +18,10 @@
  */
 package org.cufy.ranno
 
+import org.cufy.ranno.internal.matchParameters
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.isSupertypeOf
 
 //////////////////////////////////////////////////
 
@@ -48,14 +48,7 @@ fun KFunction<*>.matchSignature(returnType: KType, parameters: List<KType>, susp
     if (!this.returnType.isSubtypeOf(returnType))
         return false
 
-    if (this.parameters.size != parameters.size)
-        return false
-
-    for (i in this.parameters.indices)
-        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
-            return false
-
-    return true
+    return matchParameters(this, parameters)
 }
 
 //////////////////////////////////////////////////
@@ -79,14 +72,7 @@ fun KFunction<*>.canCast(returnType: KType, parameters: List<KType>): Boolean {
     if (!this.returnType.isSubtypeOf(returnType))
         return false
 
-    if (this.parameters.size != parameters.size)
-        return false
-
-    for (i in this.parameters.indices)
-        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
-            return false
-
-    return true
+    return matchParameters(this, parameters)
 }
 
 /**
@@ -108,14 +94,7 @@ fun KFunction<*>.canCastSuspend(returnType: KType, parameters: List<KType>): Boo
     if (!this.returnType.isSubtypeOf(returnType))
         return false
 
-    if (this.parameters.size != parameters.size)
-        return false
-
-    for (i in this.parameters.indices)
-        if (!this.parameters[i].type.isSupertypeOf(parameters[i]))
-            return false
-
-    return true
+    return matchParameters(this, parameters)
 }
 
 //////////////////////////////////////////////////

@@ -21,7 +21,8 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.KType
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaMethod
 import java.lang.reflect.Array as java_lang_reflect_Array
 
@@ -140,4 +141,93 @@ internal fun requireEnumerable(annotation: KClass<out Annotation>) {
     require(annotation.hasAnnotation<Enumerable>()) {
         "Annotation must be annotated with @Enumerable for annotatedElements() to work"
     }
+}
+
+/**
+ * Returns false if [function] has context parameters but was not reflected.
+ */
+internal fun isContextParametersReflected(function: KFunction<*>): Boolean {
+    var expectedCount = function.parameters.size
+    if (function.isSuspend) expectedCount++
+    if (function.instanceParameter != null) expectedCount--
+    return function.javaMethod!!.parameterCount == expectedCount
+}
+
+/**
+ * Return the jvm-erased/star-projected types of the context parameters of [function].
+ */
+internal fun jvmErasedTypesOfContextParameterTypesOf(function: KFunction<*>): List<KType> {
+    var nonContextParametersCount = function.valueParameters.size
+    // if (function.instanceParameter != null) nonContextParametersCount++ ; not reported in java
+    if (function.extensionReceiverParameter != null) nonContextParametersCount++
+    if (function.isSuspend) nonContextParametersCount++
+
+    val javaMethod = function.javaMethod ?: return emptyList()
+    val javaParameterCount = javaMethod.parameterCount
+
+    if (javaParameterCount <= nonContextParametersCount)
+        return emptyList()
+
+    val javaParameterTypes = javaMethod.parameterTypes
+    return List(javaParameterCount - nonContextParametersCount) {
+        javaParameterTypes[it].kotlin.starProjectedType
+    }
+}
+
+internal fun matchParameters(function: KFunction<*>, parameters: List<KType>): Boolean {
+    if (function.parameters.size != parameters.size) {
+        // Early return: parameters already doesn't satisfy reflected parameters.
+        if (function.parameters.size > parameters.size)
+            return false
+
+        // future proofing: when function.parameters is updated to include context parameters
+        if (isContextParametersReflected(function))
+            return false
+
+        val funCtxParamTypes = jvmErasedTypesOfContextParameterTypesOf(function)
+
+        // This is necessary to ensure parameters is at least the expected parameters
+        if (function.parameters.size + funCtxParamTypes.size != parameters.size)
+            return false
+
+        // Ordered parameters checks
+        var offset = 0
+
+        function.instanceParameter?.let { param ->
+            if (!param.type.isSupertypeOf(parameters[offset]))
+                return false
+
+            offset++
+        }
+
+        funCtxParamTypes.forEach { paramType ->
+            if (!paramType.isSupertypeOf(parameters[offset]))
+                return false
+
+            offset++
+        }
+
+        function.extensionReceiverParameter?.let { param ->
+            if (!param.type.isSupertypeOf(parameters[offset]))
+                return false
+
+            offset++
+        }
+
+        function.valueParameters.forEach { param ->
+            if (!param.type.isSupertypeOf(parameters[offset]))
+                return false
+
+            offset++
+        }
+
+        // future proofing: there is a chance that a new parameter type may get introduced
+        return offset == parameters.size
+    }
+
+    for (i in function.parameters.indices)
+        if (!function.parameters[i].type.isSupertypeOf(parameters[i]))
+            return false
+
+    return true
 }
